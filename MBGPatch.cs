@@ -45,7 +45,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 TotalGravity += GravityForce;
             }
             //__result = TotalGravity;
-            __result = new Vector3d(0, 0, 0);
+            __result =  position.normalized * -(6.67384E-11 * __instance.PlanetData.Mass * mass / position.sqrMagnitude);
         }
     }
 
