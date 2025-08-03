@@ -17,7 +17,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         static void Postfix(ref Vector3d __result, PlanetNode __instance, Vector3d position, double mass)
         {
-            Vector3d craftSolarPosition = __instance.SolarPosition;
+            Vector3d craftSolarPosition = __instance.SolarPosition + position;
             IPlanetNode SunNode = (IPlanetNode)__instance;
             if (MBGOrbit.SunNode == null)
             {
