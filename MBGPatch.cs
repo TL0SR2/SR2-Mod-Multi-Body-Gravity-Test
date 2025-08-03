@@ -17,7 +17,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         static void Postfix(ref Vector3d __result, PlanetNode __instance, Vector3d position, double mass)
         {
-            Vector3d craftSolarPosition = __instance.SolarPosition;
+            Vector3d craftSolarPosition = __instance.SolarPosition + position;
             IPlanetNode SunNode = (IPlanetNode)__instance;
             if (MBGOrbit.SunNode == null)
             {
@@ -44,8 +44,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Vector3d GravityForce = (6.67384E-11 * planetData.Mass * mass / positionVector.sqrMagnitude) * positionVector.normalized;
                 TotalGravity += GravityForce;
             }
-            //__result = TotalGravity;
-            __result = new Vector3d(0, 0, 0);
+            __result = TotalGravity;
         }
     }
 
