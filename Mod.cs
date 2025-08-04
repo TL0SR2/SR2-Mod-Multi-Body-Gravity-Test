@@ -10,6 +10,8 @@ namespace Assets.Scripts
     using ModApi.Common;
     using ModApi.Mods;
     using UnityEngine;
+    using Assets.Scripts.DevConsole;
+    using Assets.Scripts.Flight.Sim.MBG;
 
     /// <summary>
     /// A singleton object representing this mod that is instantiated and initialize when the mod is loaded.
@@ -31,6 +33,7 @@ namespace Assets.Scripts
 
         protected override void OnModInitialized()
         {
+            DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Math Calculation Step", value => MBGMath.SetMBGCalculationStep(value));
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
         }
 

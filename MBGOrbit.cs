@@ -16,18 +16,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public MBGOrbit(double startTime, Vector3d startPosition, Vector3d startVelocity)
         {
             this._startTime = startTime;
-            this.MBG_PositionList.Add(startPosition);
-            this.MBG_VelocityList.Add(startVelocity);
+            this.MBG_PVList.Add(new P_V_Pair(startPosition,startVelocity));
 
             ForceReCalculation();
         }
         public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
         {
             int n = (int)Math.Floor((startTime - _startTime) / _listAccuracyTime);
-            int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
-            MBGMath.NumericalIntegration(MBG_PositionList[n], MBG_VelocityList[n], step, n * _listAccuracyTime + _startTime, out List<Vector3d> positionList, out List<Vector3d> velocityList);
-            UpdateList<Vector3d>(ref MBG_PositionList, positionList, n);
-            UpdateList<Vector3d>(ref MBG_VelocityList, velocityList, n);
+            //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
+            MBGMath.NumericalIntegration(MBG_PVList[n], n * _listAccuracyTime + _startTime, elapsedTime - elapsedTime % _listAccuracyTime, out List<P_V_Pair> PVList);
+            UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
             //接下来应该在此处执行激活重绘轨道线的操作
         }
 
@@ -35,28 +33,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             MBG_Numerical_Calculation(CurrentTime, _defaultDurationTime);
         }
-
-        public Vector3d GetPositionFromTime(double time)
+        public P_V_Pair GetPVPairFromTime(double time)
         {
             double durationTime = time - _startTime;
             int n = (int)Math.Floor(durationTime / _listAccuracyTime);
-            if (n < 0 || n > (MBG_PositionList.Count - 1))
+            if (n < 0 || n > (MBG_PVList.Count - 1))
             {
-                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPositionFromTime -- Time Out Of Range");
-                return new Vector3d(0, 0, 0);
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVPairFromTime -- Time Out Of Range");
+                return P_V_Pair.Zero;
             }
-            return MBGMath.Interpolation(MBG_PositionList[n], MBG_PositionList[n + 1], durationTime / _listAccuracyTime - n);
-        }
-        public Vector3d GetVelocityFromTime(double time)
-        {
-            double durationTime = time - _startTime;
-            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
-            if (n < 0 || n > (MBG_VelocityList.Count - 1))
-            {
-                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetVelocityFromTime -- Time Out Of Range");
-                return new Vector3d(0, 0, 0);
-            }
-            return MBGMath.Interpolation(MBG_VelocityList[n], MBG_VelocityList[n + 1], durationTime / _listAccuracyTime - n);
+            return MBGMath.Interpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
         }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
@@ -129,8 +115,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
             }
         }
-        public List<Vector3d> MBG_PositionList = new List<Vector3d> { };
-        public List<Vector3d> MBG_VelocityList = new List<Vector3d> { };
+        public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
 
         public List<MBGOrbitSpecialPoint> SpecialPointList = new List<MBGOrbitSpecialPoint> { };
 
