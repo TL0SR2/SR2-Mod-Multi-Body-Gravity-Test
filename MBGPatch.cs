@@ -9,6 +9,10 @@ using Assets.Scripts.Craft;
 using ModApi.Craft;
 using System.Reflection;
 using Assets.Scripts.Flight.Sim.MBG;
+using Assets.Scripts.State;
+using System;
+using ModApi.Scripts.State;
+using System.Xml.Linq;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -111,12 +115,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return false;
         }
     }
-/*
-    [HarmonyPatch]
-    public class MBGPatch_CraftNode
-    {
-        private static readonly Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
 
+    [HarmonyPatch]
+    public class MBGPatch_CraftNodeConstructor1
+    {
         [HarmonyTargetMethod]
         public static MethodBase TargetMethod()
         {
@@ -129,27 +131,63 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 typeof(FlightState),
                 typeof(double),
                 typeof(CraftData),
-                typeof(Assets.Scripts.Craft.CraftScript)
+                typeof(CraftScript)
                 });
         }
-        
+
         [HarmonyPostfix]
-    public static void Postfix(CraftNode __instance, Vector3d position, Vector3d velocity, Quaterniond heading, FlightState flightState, double primaryMass, CraftData craftData, Assets.Scripts.Craft.CraftScript craftScript)
-    {
-        try
+        public static void Postfix(CraftNode __instance, Vector3d position, Vector3d velocity, Quaterniond heading, FlightState flightState, double primaryMass, CraftData craftData, Assets.Scripts.Craft.CraftScript craftScript)
         {
-            // Create a new MBGOrbit instance (customize initialization as needed)
-            MBGOrbit mbgOrbit = new MBGOrbit(position, velocity);
+            MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, position, velocity);
 
-            // Store the MBGOrbit instance in the dictionary, keyed by the CraftNode instance
-            craftNodeOrbitMap[__instance] = mbgOrbit;
-
-            Debug.Log($"MBGOrbit initialized for CraftNode {__instance.NodeId} with Position: {mbgOrbit.Position}, Velocity: {mbgOrbit.Velocity}");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Error in CraftNode constructor patch: {ex.Message}");
+            MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
         }
     }
-    }*/
+
+
+
+    [HarmonyPatch]
+    public class MBGPatch_CraftNodeConstructor2
+    {
+        [HarmonyTargetMethod]
+        public static MethodBase TargetMethod()
+        {
+            return AccessTools.Constructor(
+                typeof(CraftNode),
+                new Type[] {
+                typeof(ICraftNodeData),
+                typeof(FlightState),
+                typeof(double),
+                typeof(CraftData),
+                typeof(CraftScript),
+                typeof(XElement)
+                });
+        }
+
+        [HarmonyPostfix]
+        public static void Postfix(CraftNode __instance, ICraftNodeData data, FlightState flightState, double primaryMass, CraftData craftData, CraftScript craftScript, XElement pendingXml)
+        {
+            MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, data.Position, data.Velocity);
+
+            MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
+        
+        }
+    }
+
+    [HarmonyPatch]
+    public class MBGPatch_DestoryCraft
+    {
+        [HarmonyTargetMethod]
+        static MethodBase TargetMethod()
+        {
+            var craftNodeType = AccessTools.TypeByName("Assets.Scripts.Flight.Sim.CraftNode");
+            var method = AccessTools.Method(craftNodeType, "DestroyCraft");
+            return method;
+        }
+
+        static void Postfix(CraftNode __instance)
+        {
+            MBGOrbit.RemoveMBGOrbit(__instance);        
+        }
+    }
 }

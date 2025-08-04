@@ -10,6 +10,35 @@ namespace Assets.Scripts.Flight.Sim.MBG
 {
     public class MBGOrbit
     {
+        private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
+
+        public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
+        {
+            return craftNodeOrbitMap.TryGetValue(craftNode, out MBGOrbit orbit) ? orbit : null;
+        }
+
+        public static void SetMBGOrbit(CraftNode craftNode, MBGOrbit orbit)
+        {
+            if (!craftNodeOrbitMap.ContainsKey(craftNode))
+            {
+                craftNodeOrbitMap.Add(craftNode, orbit);
+            }
+            else
+            {
+                craftNodeOrbitMap[craftNode] = orbit;
+            }
+            
+        }
+
+        public static void RemoveMBGOrbit(CraftNode craftNode)
+        {
+            if (craftNodeOrbitMap.ContainsKey(craftNode))
+            {
+                craftNodeOrbitMap.Remove(craftNode);
+            }
+            
+        }
+
         public static IPlanetNode SunNode = null;
         public static IReadOnlyList<IPlanetData> planetList = null;
         public MBGOrbit(double startTime, Vector3d startPostion, Vector3d startVelocity)
