@@ -10,7 +10,54 @@ namespace Assets.Scripts.Flight.Sim.MBG
 {
     public class MBGOrbit
     {
-        private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
+        
+        public static IPlanetNode SunNode = null;
+        public static IReadOnlyList<IPlanetData> planetList = null;
+        public MBGOrbit(double startTime, Vector3d startPosition, Vector3d startVelocity)
+        {
+            this._startTime = startTime;
+            this.MBG_PositionList.Add(startPosition);
+            this.MBG_VelocityList.Add(startVelocity);
+
+            ForceReCalculation();
+        }
+        public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
+        {
+            int n = (int)Math.Floor((startTime - _startTime) / _listAccuracyTime);
+            int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
+            MBGMath.NumericalIntegration(MBG_PositionList[n], MBG_VelocityList[n], step, n * _listAccuracyTime + _startTime, out List<Vector3d> positionList, out List<Vector3d> velocityList);
+            UpdateList<Vector3d>(ref MBG_PositionList, positionList, n);
+            UpdateList<Vector3d>(ref MBG_VelocityList, velocityList, n);
+            //接下来应该在此处执行激活重绘轨道线的操作
+        }
+
+        public void ForceReCalculation()
+        {
+            MBG_Numerical_Calculation(CurrentTime, _defaultDurationTime);
+        }
+
+        public Vector3d GetPositionFromTime(double time)
+        {
+            double durationTime = time - _startTime;
+            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
+            if (n < 0 || n > (MBG_PositionList.Count - 1))
+            {
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPositionFromTime -- Time Out Of Range");
+                return new Vector3d(0, 0, 0);
+            }
+            return MBGMath.Interpolation(MBG_PositionList[n], MBG_PositionList[n + 1], durationTime / _listAccuracyTime - n);
+        }
+        public Vector3d GetVelocityFromTime(double time)
+        {
+            double durationTime = time - _startTime;
+            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
+            if (n < 0 || n > (MBG_VelocityList.Count - 1))
+            {
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetVelocityFromTime -- Time Out Of Range");
+                return new Vector3d(0, 0, 0);
+            }
+            return MBGMath.Interpolation(MBG_VelocityList[n], MBG_VelocityList[n + 1], durationTime / _listAccuracyTime - n);
+        }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
         {
@@ -27,7 +74,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 craftNodeOrbitMap[craftNode] = orbit;
             }
-            
+
         }
 
         public static void RemoveMBGOrbit(CraftNode craftNode)
@@ -36,66 +83,80 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 craftNodeOrbitMap.Remove(craftNode);
             }
-            
+
+        }
+        public static Dictionary<double, Vector3d> GetPlanetsPositionAtTime(double time)
+        {
+            // 输出值Dictionary<double, Vector3d>中每一个k-v对表示一个行星在time时的数据；double表示行星的质量，Vectoe3d表示行星的位置。
+            Dictionary<double, Vector3d> result = new Dictionary<double, Vector3d>{};
+            foreach (IPlanetData planetData in planetList)
+            {
+                IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
+                double mass = planetNode.PlanetData.Mass;
+                Vector3d SolarPosition = planetNode.GetSolarPositionAtTime(time);
+                result.Add(mass, SolarPosition);
+            }
+            return result;
+        }
+        public static Vector3d CalculateGravityAtTime(Vector3d CraftPosition, double time)
+        {
+            Vector3d result = new Vector3d(0, 0, 0);
+            foreach (var planetData in planetList)
+            {
+                IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
+                double planetMass = planetNode.PlanetData.Mass;
+                Vector3d planetSolarPosition = planetNode.GetSolarPositionAtTime(time);
+                Vector3d deltaPosition = planetSolarPosition - CraftPosition;
+                Vector3d GravityAcceleration = GravityConst * planetMass / deltaPosition.sqrMagnitude * deltaPosition.normalized;
+                result += GravityAcceleration;
+            }
+            return result;
         }
 
-        public static IPlanetNode SunNode = null;
-        public static IReadOnlyList<IPlanetData> planetList = null;
-        public MBGOrbit(double startTime, Vector3d startPostion, Vector3d startVelocity)
+        public static void UpdateList<T>(ref List<T> originList, List<T> newList, int NewListStartAt)
         {
-            this._startTime = startTime;
-            this.MBG_PositionList.Add(startPostion);
-            this.MBG_VelocityList.Add(startVelocity);
+            // 输入原始列表originList,输入新列表newList,输入位数NewListStartAt作为n
+            // 将原始列表的第n位改为新列表的第0位，原始列表的n+1位改为新列表的第1位，以此类推；如果原列表到达结尾，那么将新列表剩余的部分直接添加到原列表的末尾
+            for (int i = 0; i < newList.Count; i++)
+            {
+                if (i + NewListStartAt > originList.Count)
+                {
+                    originList.Add(newList[i]);
+                }
+                else
+                {
+                    originList[i + NewListStartAt] = newList[i];
+                }
+            }
         }
         public List<Vector3d> MBG_PositionList = new List<Vector3d> { };
         public List<Vector3d> MBG_VelocityList = new List<Vector3d> { };
 
         public List<MBGOrbitSpecialPoint> SpecialPointList = new List<MBGOrbitSpecialPoint> { };
 
-        public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
-        {
+        private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
 
-        }
+        private readonly double _startTime;
+        public double EndTime{ get; private set; }
+        public static readonly double GravityConst = 6.674E-11;
 
-        public void ForceReCaculation()
+        public static double ForceReCalculateBeforeEnd = 1;
+        private static double _listAccuracyTime
         {
-
-        }
-
-        public static void SetMBGcalculationStep(double value)
-        {
-            _calculationStepTime = value;
-        }
-        public static void SetMBGlistAccuracy(double value)
-        {
-            _listAccuracyTime = value;
-        }
-        public Vector3d GetPositionFromTime(double time)
-        {
-            double durationTime = time - _startTime;
-            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
-            if (n < 0 || n > (MBG_PositionList.Count-1))
+            get
             {
-                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPositionFromTime -- Time Out Of Range");
-                return new Vector3d(0, 0, 0);
+                return MBGMath._calculationStepTime;
             }
-            return MBGMath.Interpolation(MBG_PositionList[n], MBG_PositionList[n + 1], durationTime / _listAccuracyTime - n);
         }
-        public Vector3d GetVelocityFromTime(double time)
-        {
-            double durationTime = time - _startTime;
-            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
-            if (n < 0 || n > (MBG_VelocityList.Count-1))
-            {
-                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetVelocityFromTime -- Time Out Of Range");
-                return new Vector3d(0, 0, 0);
-            }
-            return MBGMath.Interpolation(MBG_VelocityList[n], MBG_VelocityList[n + 1], durationTime / _listAccuracyTime - n);
-        }
-        private double _startTime;
-        private static double _calculationStepTime = 0.01;
-        private static double _listAccuracyTime = 0.1;
         private static double _defaultDurationTime = 3600;
+
+        public static double CurrentTime
+        {
+            get
+            {
+                return Game.Instance.FlightScene.FlightState.Time;
+            }
+        }
     }
 
 

@@ -94,6 +94,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             if (__instance.CraftScript != null && timeWarpForceTotal.sqrMagnitude > 0f)
             {
+                MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(__instance);
+                if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
+                {
+                    mbgOrbit.ForceReCalculation();
+                }
+                //接下来应该把__instance.Orbit.Position等内容替换成mbgOrbit的对应数据
                 Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
                 Vector3d velocity = __instance.Orbit.Velocity + vector;
                 __instance.SetStateVectorsAtDefaultTime(__instance.Orbit.Position, velocity);
@@ -175,7 +181,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     }
 
     [HarmonyPatch]
-    public class MBGPatch_DestoryCraft
+    public class MBGPatch_DestroyCraft
     {
         [HarmonyTargetMethod]
         static MethodBase TargetMethod()

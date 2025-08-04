@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -13,5 +15,28 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             return (1 - ratio) * vec1 + ratio * vec2;
         }
+
+        public static void NumericalIntegration(Vector3d startPosition, Vector3d startVelocity, int CaculateStep, double startTime, out List<Vector3d> positionOut, out List<Vector3d> velocityOut)
+        {
+            Vector3d position = startPosition;
+            Vector3d velocity = startVelocity;
+            double time = startTime;
+            positionOut = new List<Vector3d> { };
+            velocityOut = new List<Vector3d> { };
+            for (int i = 0; i < CaculateStep; i++)
+            {
+                positionOut.Add(position);
+                velocityOut.Add(velocity);
+
+            }
+            
+        }
+
+        public static void SetMBGCalculationStep(double value)
+        {
+            _calculationStepTime = value;
+        }
+        
+        public static double _calculationStepTime { get; private set; } = 0.05;
     }
 }
