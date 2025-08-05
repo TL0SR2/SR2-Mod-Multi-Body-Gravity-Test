@@ -5,6 +5,7 @@ using System;
 using ModApi.Flight.Sim;
 using Assets.Scripts.Flight.Sim;
 using ModApi.Planet;
+using System.Linq;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -12,13 +13,26 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         
         public static IPlanetNode SunNode = null;
-        public static IReadOnlyList<IPlanetData> planetList = null;
+        public static IReadOnlyList<IPlanetData> PlanetList = null;
         public MBGOrbit(double startTime, Vector3d startPosition, Vector3d startVelocity)
         {
             this._startTime = startTime;
-            this.MBG_PVList.Add(new P_V_Pair(startPosition,startVelocity));
-
+            this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
+            
+            FindPlanetInformation();
             ForceReCalculation();
+        }
+
+        public void FindPlanetInformation()
+        {
+            var CurrentPlanet = CurrentCraft.Parent;
+            PlanetList = CurrentPlanet.PlanetData.SolarSystemData.Planets;
+            IPlanetNode sunNode = CurrentPlanet;
+            while (sunNode.Parent != null)
+            {
+                sunNode = sunNode.Parent;
+            }
+            SunNode = sunNode;
         }
         public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
         {
@@ -73,9 +87,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public static Dictionary<double, Vector3d> GetPlanetsPositionAtTime(double time)
         {
-            // 输出值Dictionary<double, Vector3d>中每一个k-v对表示一个行星在time时的数据；double表示行星的质量，Vectoe3d表示行星的位置。
+            // 输出值Dictionary<double, Vector3d>中每一个k-v对表示一个行星在time时的数据；double表示行星的质量，Vector3d表示行星的位置。
             Dictionary<double, Vector3d> result = new Dictionary<double, Vector3d>{};
-            foreach (IPlanetData planetData in planetList)
+            foreach (IPlanetData planetData in PlanetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
                 double mass = planetNode.PlanetData.Mass;
@@ -87,7 +101,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static Vector3d CalculateGravityAtTime(Vector3d CraftPosition, double time)
         {
             Vector3d result = new Vector3d(0, 0, 0);
-            foreach (var planetData in planetList)
+            foreach (var planetData in PlanetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
                 double planetMass = planetNode.PlanetData.Mass;
@@ -97,6 +111,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 result += GravityAcceleration;
             }
             return result;
+        }
+
+        public static List<Vector3d> CalculateGravityJacobiAtTime(Vector3d CraftPosition, double time)
+        {
+            foreach (var planetData in PlanetList)
+            {
+                IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
+                double planetMass = planetNode.PlanetData.Mass;
+                Vector3d planetSolarPosition = planetNode.GetSolarPositionAtTime(time);
+                Vector3d deltaPosition = planetSolarPosition - CraftPosition;
+                double Distance = deltaPosition.magnitude;
+                double Ki = GravityConst * planetMass / Math.Pow(Distance, 3);
+            }
         }
 
         public static void UpdateList<T>(ref List<T> originList, List<T> newList, int NewListStartAt)
@@ -120,6 +147,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public List<MBGOrbitSpecialPoint> SpecialPointList = new List<MBGOrbitSpecialPoint> { };
 
         private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
+
+        public CraftNode CurrentCraft
+        {
+            get
+            {
+                return craftNodeOrbitMap.FirstOrDefault(q => q.Value == this).Key;
+            }
+        }
 
         private readonly double _startTime;
         public double EndTime{ get; private set; }

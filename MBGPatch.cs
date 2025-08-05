@@ -23,7 +23,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             Vector3d craftSolarPosition = __instance.SolarPosition + position;
             IPlanetNode SunNode = (IPlanetNode)__instance;
-            if (MBGOrbit.SunNode == null)
+            while (SunNode.Parent != null)
+            {
+                SunNode = SunNode.Parent;
+            }
+            /*if (MBGOrbit.SunNode == null)
             {
                 while (SunNode.Parent != null)
                 {
@@ -34,12 +38,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             else
             {
                 SunNode = MBGOrbit.SunNode;
-            }
+            }*/
             IReadOnlyList<IPlanetData> planetList = __instance.PlanetData.SolarSystemData.Planets;
-            if (MBGOrbit.planetList == null || MBGOrbit.planetList.Count == 0)
+            /*if (MBGOrbit.PlanetList == null || MBGOrbit.PlanetList.Count == 0)
             {
                 MBGOrbit.planetList = planetList;
-            }
+            }*/
             Vector3d TotalGravity = new Vector3d(0, 0, 0);
             foreach (IPlanetData planetData in planetList)
             {
@@ -68,7 +72,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Vector3d craftSolarPosition = __instance.SolarPosition;
             double mass = (double)__instance.CraftMass;
 
-            IReadOnlyList<IPlanetData> planetList = MBGOrbit.planetList;
+            IReadOnlyList<IPlanetData> planetList = MBGOrbit.PlanetList;
             Vector3d TotalGravity = new Vector3d(0, 0, 0);
             IPlanetData CurrentPlanet = __instance.Parent.PlanetData;
             foreach (IPlanetData planetData in planetList)
