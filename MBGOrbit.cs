@@ -10,9 +10,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
 {
     public class MBGOrbit
     {
-        
-        public static IPlanetNode SunNode = null;
-        public static IReadOnlyList<IPlanetData> planetList = null;
+
+        public static IPlanetNode SunNode { get; set; }
+        public static IReadOnlyList<IPlanetData> planetList { get; set; }
         public MBGOrbit(double startTime, Vector3d startPosition, Vector3d startVelocity)
         {
             this._startTime = startTime;
@@ -137,10 +137,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static double CurrentTime
         {
-            get
-            {
-                return Game.Instance.FlightScene.FlightState.Time;
-            }
+            get=>Game.Instance.FlightScene.FlightState.Time;
+            //get => Game.Instance.GameState.GetCurrentTime();
         }
     }
 

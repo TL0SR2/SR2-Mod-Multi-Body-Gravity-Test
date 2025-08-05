@@ -53,18 +53,32 @@ namespace Assets.Scripts.Flight.Sim.MBG
     }
 
     [HarmonyPatch]
-    public class MBGPatch_ApplyTimeWarpForce
+public class MBGPatch_ApplyTimeWarpForce
+{
+    [HarmonyTargetMethod]
+    static MethodBase TargetMethod()
     {
-        [HarmonyTargetMethod]
-        static MethodBase TargetMethod()
+        var craftNodeType = AccessTools.TypeByName("Assets.Scripts.Flight.Sim.CraftNode");
+        return AccessTools.Method(craftNodeType, "ApplyTimeWarpForce", new[] { typeof(double) });
+    }
+
+    static bool Prefix(CraftNode __instance, double deltaTime)
+    {
+        try
         {
-            var craftNodeType = AccessTools.TypeByName("Assets.Scripts.Flight.Sim.CraftNode");
-            var method = AccessTools.Method(craftNodeType, "ApplyTimeWarpForce", new[] { typeof(double) });
-            return method;
-        }
-        static bool Prefix(CraftNode __instance, double deltaTime)
-        {
+            // 确保 SunNode 和 planetList 已初始化
+            if (MBGOrbit.SunNode == null || MBGOrbit.planetList == null || MBGOrbit.planetList.Count == 0)
+            {
+                MBGPatch_CraftNodeConstructor2.InitializeStaticFields(__instance);
+            }
+
             IPlanetNode SunNode = MBGOrbit.SunNode;
+            if (SunNode == null)
+            {
+                Debug.LogError("MBGOrbit.SunNode is null");
+                return true; // 跳回原方法
+            }
+
             Vector3d craftSolarPosition = __instance.SolarPosition;
             double mass = (double)__instance.CraftMass;
 
@@ -77,24 +91,30 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d planetSolarPosition = SunNode.FindPlanet(planetData.Name).SolarPosition;
                     Vector3d positionVector = planetSolarPosition - craftSolarPosition;
-                    Vector3d GravityForce = (6.67384E-11 * planetData.Mass * mass / positionVector.sqrMagnitude) * positionVector.normalized;
+                    Vector3d GravityForce = (MBGOrbit.GravityConst * planetData.Mass * mass / positionVector.sqrMagnitude) * positionVector.normalized;
                     TotalGravity += GravityForce;
                 }
             }
-
 
             var field_timeWarpForceTotal = AccessTools.Field(__instance.GetType(), "_timeWarpForceTotal");
             var field_craftScript = AccessTools.Field(__instance.GetType(), "_craftScript");
             var property_Heading = AccessTools.Property(__instance.GetType(), "Heading");
             Vector3 Temp = (Vector3)field_timeWarpForceTotal.GetValue(__instance);
             Vector3d timeWarpForceTotal = new Vector3d(Temp.x, Temp.y, Temp.z);
-            //timeWarpForceTotal += TotalGravity;
+            
+            timeWarpForceTotal += TotalGravity;
             CraftScript craftScript = (CraftScript)field_craftScript.GetValue(__instance);
             Quaterniond Heading = (Quaterniond)property_Heading.GetValue(__instance);
 
             if (__instance.CraftScript != null && timeWarpForceTotal.sqrMagnitude > 0f)
             {
                 MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(__instance);
+                if (mbgOrbit == null)
+                {
+                    Debug.LogError($"MBGOrbit for CraftNode {__instance.NodeId} is null");
+                    return true;
+                }
+
                 if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
                 {
                     mbgOrbit.ForceReCalculation();
@@ -106,6 +126,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 __instance.SetStateVectorsAtDefaultTime(State.Position, velocity);
                 timeWarpForceTotal = new Vector3d(0, 0, 0);
             }
+
             CraftControls controls = __instance.Controls;
             if (controls != null && controls.TargetHeading != null)
             {
@@ -121,7 +142,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
             field_craftScript.SetValue(__instance, craftScript);
             return false;
         }
+        catch (Exception ex)
+        {
+            Debug.LogError($"ApplyTimeWarpForce 补丁错误：{ex.Message}");
+            return true; // 发生错误时运行原方法
+        }
     }
+    
+}
 
     [HarmonyPatch]
     public class MBGPatch_CraftNodeConstructor1
@@ -132,22 +160,48 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return AccessTools.Constructor(
                 typeof(CraftNode),
                 new Type[] {
-                typeof(Vector3d),
-                typeof(Vector3d),
-                typeof(Quaterniond),
-                typeof(FlightState),
-                typeof(double),
-                typeof(CraftData),
-                typeof(CraftScript)
+                    typeof(Vector3d),
+                    typeof(Vector3d),
+                    typeof(Quaterniond),
+                    typeof(FlightState),
+                    typeof(double),
+                    typeof(CraftData),
+                    typeof(CraftScript)
                 });
         }
 
         [HarmonyPostfix]
         public static void Postfix(CraftNode __instance, Vector3d position, Vector3d velocity, Quaterniond heading, FlightState flightState, double primaryMass, CraftData craftData, Assets.Scripts.Craft.CraftScript craftScript)
         {
-            MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, position, velocity);
+            try
+            {
+                // 初始化 SunNode 和 planetList
+                InitializeStaticFields(__instance);
 
-            MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
+                MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, position, velocity);
+                MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
+                Debug.Log($"为 CraftNode {__instance.NodeId} 初始化 MBGOrbit");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"CraftNodeConstructor1 补丁错误：{ex.Message}");
+            }
+        }
+        private static void InitializeStaticFields(CraftNode craftNode)
+        {
+            if (MBGOrbit.SunNode == null && craftNode.Parent != null)
+            {
+                IPlanetNode sunNode = craftNode.Parent;
+                while (sunNode.Parent != null)
+                {
+                    sunNode = sunNode.Parent;
+                }
+                MBGOrbit.SunNode = sunNode;
+            }
+            if (MBGOrbit.planetList == null || MBGOrbit.planetList.Count == 0)
+            {
+                MBGOrbit.planetList = craftNode.Parent?.PlanetData?.SolarSystemData?.Planets;
+            }
         }
     }
 
@@ -162,22 +216,49 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return AccessTools.Constructor(
                 typeof(CraftNode),
                 new Type[] {
-                typeof(ICraftNodeData),
-                typeof(FlightState),
-                typeof(double),
-                typeof(CraftData),
-                typeof(CraftScript),
-                typeof(XElement)
+                    typeof(ICraftNodeData),
+                    typeof(FlightState),
+                    typeof(double),
+                    typeof(CraftData),
+                    typeof(CraftScript),
+                    typeof(XElement)
                 });
         }
 
         [HarmonyPostfix]
         public static void Postfix(CraftNode __instance, ICraftNodeData data, FlightState flightState, double primaryMass, CraftData craftData, CraftScript craftScript, XElement pendingXml)
         {
-            MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, data.Position, data.Velocity);
+            try
+            {
+                // 初始化 SunNode 和 planetList
+                InitializeStaticFields(__instance);
 
-            MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
-        
+                MBGOrbit mbgOrbit = new MBGOrbit(flightState.Time, data.Position, data.Velocity);
+                MBGOrbit.SetMBGOrbit(__instance, mbgOrbit);
+                Debug.Log($"为 CraftNode {__instance.NodeId} 初始化 MBGOrbit");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"CraftNodeConstructor2 补丁错误：{ex.Message}");
+            }
+        }
+
+        // 辅助方法：初始化静态字段
+        public static void InitializeStaticFields(CraftNode craftNode)
+        {
+            if (MBGOrbit.SunNode == null && craftNode.Parent != null)
+            {
+                IPlanetNode sunNode = craftNode.Parent;
+                while (sunNode.Parent != null)
+                {
+                    sunNode = sunNode.Parent;
+                }
+                MBGOrbit.SunNode = sunNode;
+            }
+            if (MBGOrbit.planetList == null || MBGOrbit.planetList.Count == 0)
+            {
+                MBGOrbit.planetList = craftNode.Parent?.PlanetData?.SolarSystemData?.Planets;
+            }
         }
     }
 

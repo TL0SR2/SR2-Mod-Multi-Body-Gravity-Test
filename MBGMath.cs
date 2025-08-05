@@ -49,11 +49,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(input_P_V.Velocity, GravityAcc);
         };
 
+        
+        /*
         public static Func<double, Vector3d, List<P_V_Pair>> GravityJacobiFunc = (time, input_P_V) =>
         //给出万有引力加速度函数的空间参量的雅可比矩阵，输出List<P_V_Pair>共3项，从第0到2项依次为对位置的x,y,z坐标的偏导
         {
 
-        }
+        }*/
 
     }
 
@@ -156,6 +158,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         //第二部分：隐式RK方法--GL方法
 
+        /*
         public static P_V_Pair MidpointMethod(P_V_Pair y_n, double x_n, Func<double, P_V_Pair, P_V_Pair> func)
         //中点法  GL1，二阶精度，保辛
         {
@@ -175,7 +178,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 x -= JFFunction(x);
             }
             return x;
-        }
+        }*/
     }
     public struct P_V_Pair
     {
