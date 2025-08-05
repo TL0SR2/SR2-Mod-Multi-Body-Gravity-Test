@@ -26,7 +26,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void FindPlanetInformation()
         {
             var CurrentPlanet = CurrentCraft.Parent;
-            PlanetList = CurrentPlanet.PlanetData.SolarSystemData.Planets;
+            planetList = CurrentPlanet.PlanetData.SolarSystemData.Planets;
             IPlanetNode sunNode = CurrentPlanet;
             while (sunNode.Parent != null)
             {
@@ -89,7 +89,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             // 输出值Dictionary<double, Vector3d>中每一个k-v对表示一个行星在time时的数据；double表示行星的质量，Vector3d表示行星的位置。
             Dictionary<double, Vector3d> result = new Dictionary<double, Vector3d>{};
-            foreach (IPlanetData planetData in PlanetList)
+            foreach (IPlanetData planetData in planetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
                 double mass = planetNode.PlanetData.Mass;
@@ -101,7 +101,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static Vector3d CalculateGravityAtTime(Vector3d CraftPosition, double time)
         {
             Vector3d result = new Vector3d(0, 0, 0);
-            foreach (var planetData in PlanetList)
+            foreach (var planetData in planetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
                 double planetMass = planetNode.PlanetData.Mass;
@@ -115,7 +115,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static List<Vector3d> CalculateGravityJacobiAtTime(Vector3d CraftPosition, double time)
         {
-            foreach (var planetData in PlanetList)
+            foreach (var planetData in planetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
                 double planetMass = planetNode.PlanetData.Mass;

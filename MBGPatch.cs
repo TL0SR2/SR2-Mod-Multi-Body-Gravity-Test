@@ -86,7 +86,7 @@ public class MBGPatch_ApplyTimeWarpForce
             Vector3d craftSolarPosition = __instance.SolarPosition;
             double mass = (double)__instance.CraftMass;
 
-            IReadOnlyList<IPlanetData> planetList = MBGOrbit.PlanetList;
+            IReadOnlyList<IPlanetData> planetList = MBGOrbit.planetList;
             Vector3d TotalGravity = new Vector3d(0, 0, 0);
             IPlanetData CurrentPlanet = __instance.Parent.PlanetData;
             foreach (IPlanetData planetData in planetList)
