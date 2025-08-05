@@ -115,6 +115,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static List<Vector3d> CalculateGravityJacobiAtTime(Vector3d CraftPosition, double time)
         {
+            Vector3d PartialVecX = new Vector3d(0, 0, 0);
+            Vector3d PartialVecY = new Vector3d(0, 0, 0);
+            Vector3d PartialVecZ = new Vector3d(0, 0, 0);
             foreach (var planetData in planetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
@@ -123,7 +126,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Vector3d deltaPosition = planetSolarPosition - CraftPosition;
                 double Distance = deltaPosition.magnitude;
                 double Ki = GravityConst * planetMass / Math.Pow(Distance, 3);
+                double Ki2 = 3 * GravityConst * planetMass / Math.Pow(Distance, 5);
+                PartialVecX.x += Ki2 * deltaPosition.x * deltaPosition.x - Ki * planetSolarPosition.x;
+                PartialVecX.y += Ki2 * deltaPosition.x * deltaPosition.y;
+                PartialVecX.z += Ki2 * deltaPosition.x * deltaPosition.z;
+                PartialVecY.x += Ki2 * deltaPosition.y * deltaPosition.x;
+                PartialVecY.y += Ki2 * deltaPosition.y * deltaPosition.y - Ki * planetSolarPosition.y;
+                PartialVecY.z += Ki2 * deltaPosition.y * deltaPosition.z;
+                PartialVecZ.x += Ki2 * deltaPosition.z * deltaPosition.x;
+                PartialVecZ.y += Ki2 * deltaPosition.z * deltaPosition.y;
+                PartialVecZ.z += Ki2 * deltaPosition.z * deltaPosition.z - Ki * planetSolarPosition.z;
             }
+            return new List<Vector3d> { PartialVecX, PartialVecY, PartialVecZ };
         }
 
         public static void UpdateList<T>(ref List<T> originList, List<T> newList, int NewListStartAt)
