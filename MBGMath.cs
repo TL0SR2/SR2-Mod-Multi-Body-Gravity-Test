@@ -185,81 +185,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Func<P_V_Pair, double> b = k => h / 2 * JacobiFunc(x_n + h / 2, y_n.Position + k.Position / 2)[0].z;
             Func<P_V_Pair, double> c = k => h / 2 * JacobiFunc(x_n + h / 2, y_n.Position + k.Position / 2)[1].z;
             //通过一次性求解线性方程组可以找到牛顿法迭代器的输入函数，输入函数维度6，六个分量分别命名为m1~m6
-            //这部分运算在手动化简之后通过mathematica一次性输出完成,然后手动化简整理并进行对称性检查得到
-            Func<P_V_Pair, Vector3d> m456 = k =>
-            {
-                Vector3d result = new Vector3d(0, 0, 0);
-                result.x =
-                8 * (
-                    x(k) * F(k)[0] +
-                    a(k) * F(k)[1] +
-                    b(k) * F(k)[2] +
-                    F(k)[3]) +
-                4 * h * (
-                    (a(k) * a(k) + b(k) * b(k) + a(k) * b(k) * c(k) * h - x(k) * (y(k) + z(k))) * F(k)[0] +
-                    (b(k) * c(k) - a(k) * z(k)) * F(k)[1] +
-                    (a(k) * c(k) - b(k) * y(k)) * F(k)[2] -
-                    (y(k) + z(k)) * F(k)[3] +
-                    a(k) * F(k)[4] +
-                    b(k) * F(k)[5]) +
-                2 * h * h * (
-                    (x(k) * y(k) * z(k) - x(k) * c(k) * c(k) - y(k) * b(k) * b(k) - z(k) * a(k) * a(k)) * F(k)[0] +
-                    (y(k) * z(k) - c(k) * c(k)) * F(k)[3] -
-                    (a(k) * z(k) - b(k) * c(k)) * F(k)[4] +
-                    (a(k) * c(k) - b(k) * y(k)) * F(k)[5]);//对称性检查可以得知交换性来源于矩阵的行列式计算
+            
 
-                result.y =
-                8 * (
-                    y(k) * F(k)[1] +
-                    c(k) * F(k)[2] +
-                    a(k) * F(k)[0] +
-                    F(k)[4]) +
-                4 * h * (
-                    (c(k) * c(k) + a(k) * a(k) + a(k) * b(k) * c(k) * h - y(k) * (z(k) + x(k))) * F(k)[1] +
-                    (a(k) * b(k) - c(k) * x(k)) * F(k)[2] +
-                    (b(k) * c(k) - a(k) * z(k)) * F(k)[0] -
-                    (z(k) + x(k)) * F(k)[4] +
-                    c(k) * F(k)[5] +
-                    a(k) * F(k)[3]) +
-                2 * h * h * (
-                    (x(k) * y(k) * z(k) - x(k) * c(k) * c(k) - y(k) * b(k) * b(k) - z(k) * a(k) * a(k)) * F(k)[1] +
-                    (x(k) * z(k) - b(k) * b(k)) * F(k)[4] -
-                    (c(k) * x(k) - a(k) * b(k)) * F(k)[5] +
-                    (c(k) * b(k) - a(k) * z(k)) * F(k)[3]);
-
-                result.z =
-                8 * (
-                    z(k) * F(k)[2] +
-                    b(k) * F(k)[0] +
-                    c(k) * F(k)[1] +
-                    F(k)[5]) +
-                4 * h * (
-                    (b(k) * b(k) + c(k) * c(k) + a(k) * b(k) * c(k) * h - z(k) * (x(k) + y(k))) * F(k)[2] +
-                    (a(k) * c(k) - b(k) * y(k)) * F(k)[0] +
-                    (a(k) * b(k) - c(k) * x(k)) * F(k)[1] -
-                    (x(k) + y(k)) * F(k)[5] +
-                    b(k) * F(k)[3] +
-                    c(k) * F(k)[4]) +
-                2 * h * h * (
-                    (x(k) * y(k) * z(k) - x(k) * c(k) * c(k) - y(k) * b(k) * b(k) - z(k) * a(k) * a(k)) * F(k)[2] +
-                    (x(k) * y(k) - a(k) * a(k)) * F(k)[5] -
-                    (b(k) * y(k) - a(k) * c(k)) * F(k)[3] +
-                    (a(k) * b(k) - c(k) * x(k)) * F(k)[4]);
-
-                result /=
-                -8 +
-                4 * h * (x(k) + y(k) + z(k)) +
-                2 * h * h * ((a(k) * a(k) + b(k) * b(k) + c(k) * c(k)) - (x(k) * y(k) + y(k) * z(k) + z(k) * x(k))) +
-                h * h * h * (2 * a(k) * b(k) * c(k) - a(k) * a(k) * z(k) - b(k) * b(k) * y(k) - c(k) * c(k) * x(k) + x(k) * y(k) * z(k));
-
-                return result;
-            };
             Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction = list =>
             {
                 P_V_Pair k = list[0];
-                Vector3d m456Vec = m456(k);
-                Vector3d m123Vec = new Vector3d(h / 2 * m456Vec.x - F(k)[0], h / 2 * m456Vec.y - F(k)[1], h / 2 * m456Vec.z - F(k)[2]);
-                P_V_Pair pair = new P_V_Pair(m123Vec, m456Vec);
+                P_V_Pair pair = J6I_FCalculation_Full(h / 2, x(k), y(k), z(k), a(k), b(k), c(k), F(k));
                 return new List<P_V_Pair> { pair };
             };
 
@@ -270,9 +201,146 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return y_n + k1;
         }
 
+        public static P_V_Pair HollingsworthMethod(P_V_Pair y_n, double x_n, Func<double, P_V_Pair, P_V_Pair> func, Func<double, Vector3d, List<Vector3d>> JacobiFunc)
+        //Hollingswort方法  GL2，四阶精度，保辛
+        {
+            //计算公式：
+            // k1 = h * func(x_n + (3 - Math.Sqrt(3)) / 6 * h, y_n + (3 * k1 + (3 - 2 * Math.Sqrt(3) * k2)) / 12)
+            // k2 = h * func(x_n + (3 + Math.Sqrt(3)) / 6 * h, y_n + (3 * k2 + (3 + 2 * Math.Sqrt(3) * k1)) / 12)
+            // y_n+1 = y_n + (k1 + k2) / 2
+        }
+
         //杂项
 
-        public static readonly int n = 5;//牛顿法的迭代次数
+
+        public static Func<double, double, double, double, double, double, double, P_V_Pair, Vector3d> J6I_FCalculation = (t, x, y, z, a, b, c, F) =>
+        //专门针对隐式RK中出现的矩阵优化的，求雅可比矩阵的逆与目标函数的乘积矢量从而得到牛顿法迭代需要的迭代函数的方法。
+        //矩阵形如：
+        // -1 0 0 t 0 0
+        // 0 -1 0 0 t 0
+        // 0 0 -1 0 0 t
+        // x a b -1 0 0
+        // a y c 0 -1 0
+        // b c z 0 0 -1
+        //输入参量为：如上矩阵中的诸元x,y,z,a,b,c,t，输入六维的矢量F
+        //输出为：上面这个矩阵的逆矩阵与矢量F的乘积矢量是六维的，这个方法计算并输出这个六维矢量的后三个分量。前三个由此可以很容易计算得到。
+        //这部分运算在手动化简之后通过mathematica一次性输出完成,然后手动化简整理并进行对称性检查得到
+        //对于对角元不是-1的情况，只要对角元非0，就可以对整个矩阵做乘法使得对角元为-1，然后输入新的参量；对于对角元为0的情况，直接拆分成两个矩阵分别求逆即可
+        {
+            Vector3d result = new Vector3d(0, 0, 0);
+            result.x =
+                (
+                x * F[0] +
+                a * F[1] +
+                b * F[2] +
+                F[3]) +
+            t * (
+                (a * a + b * b + 2 * a * b * c * t - x * (y + z)) * F[0] +
+                (b * c - a * z) * F[1] +
+                (a * c - b * y) * F[2] -
+                (y + z) * F[3] +
+                a * F[4] +
+                b * F[5]) +
+            t * t * (
+                (x * y * z - x * c * c - y * b * b - z * a * a) * F[0] +
+                (y * z - c * c) * F[3] -
+                (a * z - b * c) * F[4] +
+                (a * c - b * y) * F[5]);//对称性检查可以得知交换性来源于矩阵的行列式计算
+
+            result.y =
+                (
+                y * F[1] +
+                c * F[2] +
+                a * F[0] +
+                F[4]) +
+            t * (
+                (c * c + a * a + 2 * a * b * c * t - y * (z + x)) * F[1] +
+                (a * b - c * x) * F[2] +
+                (b * c - a * z) * F[0] -
+                (z + x) * F[4] +
+                c * F[5] +
+                a * F[3]) +
+            t * t * (
+                (x * y * z - x * c * c - y * b * b - z * a * a) * F[1] +
+                (x * z - b * b) * F[4] -
+                (c * x - a * b) * F[5] +
+                (c * b - a * z) * F[3]);
+
+            result.z =
+                (
+                z * F[2] +
+                b * F[0] +
+                c * F[1] +
+                F[5]) +
+            t * (
+                (b * b + c * c + 2 * a * b * c * t - z * (x + y)) * F[2] +
+                (a * c - b * y) * F[0] +
+                (a * b - c * x) * F[1] -
+                (x + y) * F[5] +
+                b * F[3] +
+                c * F[4]) +
+            t * t * (
+                (x * y * z - x * c * c - y * b * b - z * a * a) * F[2] +
+                (x * y - a * a) * F[5] -
+                (b * y - a * c) * F[3] +
+                (a * b - c * x) * F[4]);
+
+            result /=
+            -1 +
+            t * (x + y + z) +
+            t * t * (a * a + b * b + c * c - (x * y + y * z + z * x)) +
+            t * t * t * (2 * a * b * c - a * a * z - b * b * y - c * c * x + x * y * z);
+
+            return result;
+        };
+        public static Func<double, double, double, double, double, double, double, P_V_Pair, P_V_Pair> J6I_FCalculation_Full = (t, x, y, z, a, b, c, F) =>
+        //主要介绍参考上面的计算参数。这个方法在上述方法的基础上计算出前三个分量，输出完整的六分量矢量。
+        {
+            Vector3d m456Vec = J6I_FCalculation(t, x, y, z, a, b, c, F);
+            Vector3d m123Vec = new Vector3d(t * m456Vec.x - F[0], t * m456Vec.y - F[1], t * m456Vec.z - F[2]);
+            return new P_V_Pair(m123Vec, m456Vec);
+        };
+
+        public static Func<double, double, double, double, double, double, double, P_V_Pair, P_V_Pair> J6_FCalculation = (t, x, y, z, a, b, c, F) =>
+        //主要介绍参考上面的计算参数。这个方法不求逆，直接求出这个形式的矩阵与输入向量的积。
+        {
+            return new P_V_Pair(t * F[3] - F[0], t * F[4] - F[1], t * F[5] - F[2], x * F[0] + a * F[1] + b * F[2] - F[3], a * F[0] + y * F[1] + c * F[2] - F[4], b * F[0] + c * F[1] + z * F[2] - F[5]);
+        };
+
+
+        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> AI_VCalculation = (x, y, z, a, b, c, F) =>
+        //形如这样的三阶方阵：
+        // x a b
+        // a y c
+        // b c z
+        //求出它的逆，并与输入矢量F相乘，返回这个乘积。
+        {
+            Vector3d result = new Vector3d(0, 0, 0);
+            result.x = F.y * (b * c - a * z) + F.z * (a * c - b * y) + F.x * (y * z - c * c);
+            result.y = F.z * (a * b - c * x) + F.x * (b * c - a * z) + F.y * (x * z - b * b);
+            result.z = F.x * (a * c - b * y) + F.y * (a * b - c * x) + F.z * (x * y - a * a);
+            result /= 2 * a * b * c - c * c * x - b * b * y - a * a * z + x * y * z;
+            return result;
+        };
+
+        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> A_VCalculation = (x, y, z, a, b, c, F) =>
+        //形如这样的三阶方阵：
+        // x a b
+        // a y c
+        // b c z
+        //直接将它与输入矢量F相乘，返回这个乘积。
+        {
+            Vector3d result = new Vector3d(0, 0, 0);
+            result.x = F.y * (b * c - a * z) + F.z * (a * c - b * y) + F.x * (y * z - c * c);
+            result.y = F.z * (a * b - c * x) + F.x * (b * c - a * z) + F.y * (x * z - b * b);
+            result.z = F.x * (a * c - b * y) + F.y * (a * b - c * x) + F.z * (x * y - a * a);
+            result /= 2 * a * b * c - c * c * x - b * b * y - a * a * z + x * y * z;
+            return result;
+        };
+
+
+
+        public static readonly int n = 10;//牛顿法的迭代次数
         public static List<P_V_Pair> NewtonIteration(Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction, List<P_V_Pair> startPosition)
         //牛顿迭代法求函数零点，输入函数为目标函数的雅可比逆与函数的乘积矢量（即在迭代时会用到的J^-1 F），输入起始位置，输出(近似的)零点
         {
