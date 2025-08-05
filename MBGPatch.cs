@@ -88,7 +88,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             var property_Heading = AccessTools.Property(__instance.GetType(), "Heading");
             Vector3 Temp = (Vector3)field_timeWarpForceTotal.GetValue(__instance);
             Vector3d timeWarpForceTotal = new Vector3d(Temp.x, Temp.y, Temp.z);
-            timeWarpForceTotal += TotalGravity;
+            //timeWarpForceTotal += TotalGravity;
             CraftScript craftScript = (CraftScript)field_craftScript.GetValue(__instance);
             Quaterniond Heading = (Quaterniond)property_Heading.GetValue(__instance);
 
@@ -99,10 +99,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     mbgOrbit.ForceReCalculation();
                 }
-                //接下来应该把__instance.Orbit.Position等内容替换成mbgOrbit的对应数据
+                //此处已经替换成自己计算得到的位置信息
+                P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime);
                 Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
-                Vector3d velocity = __instance.Orbit.Velocity + vector;
-                __instance.SetStateVectorsAtDefaultTime(__instance.Orbit.Position, velocity);
+                Vector3d velocity = State.Velocity + vector;
+                __instance.SetStateVectorsAtDefaultTime(State.Position, velocity);
                 timeWarpForceTotal = new Vector3d(0, 0, 0);
             }
             CraftControls controls = __instance.Controls;

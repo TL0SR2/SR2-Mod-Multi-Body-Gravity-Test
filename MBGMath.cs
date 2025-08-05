@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-
 namespace Assets.Scripts.Flight.Sim.MBG
 {
     public static class MBGMath
@@ -29,7 +28,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(PVPair);
-
+                PVPair = MBGMath_CaculationMethod.ClassicRK4Method(PVPair, time, GravityFunc);
+                time += _calculationStepTime;
             }
 
         }
@@ -157,8 +157,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
         //杂项
+
+        public static readonly int n = 5;//牛顿法的迭代次数
         public static List<P_V_Pair> NewtonIteration(Func<List<P_V_Pair>, List<P_V_Pair>> targetFunction, List<P_V_Pair> startPosition)
-        //牛顿迭代法求函数零点，输入目标函数，输入起始位置，输出零点
+        //牛顿迭代法求函数零点，输入函数为目标函数的雅可比逆与函数的乘积（即在迭代时会用到的J^-1 F），输入起始位置，输出零点
         {
 
         }
