@@ -105,7 +105,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             // 将原始列表的第n位改为新列表的第0位，原始列表的n+1位改为新列表的第1位，以此类推；如果原列表到达结尾，那么将新列表剩余的部分直接添加到原列表的末尾
             for (int i = 0; i < newList.Count; i++)
             {
-                if (i + NewListStartAt > originList.Count)
+                if (i + NewListStartAt >= originList.Count)
                 {
                     originList.Add(newList[i]);
                 }

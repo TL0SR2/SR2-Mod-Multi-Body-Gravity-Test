@@ -43,10 +43,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static double _calculationStepTime { get; private set; } = 0.05;
 
         public static Func<double, P_V_Pair, P_V_Pair> GravityFunc = (time, input_P_V) =>
+        //给出总的数值模拟迭代函数
         {
             Vector3d GravityAcc = MBGOrbit.CalculateGravityAtTime(input_P_V.Position, time);
             return new P_V_Pair(input_P_V.Velocity, GravityAcc);
         };
+
+        public static Func<double, Vector3d, List<P_V_Pair>> GravityJacobiFunc = (time, input_P_V) =>
+        //给出万有引力加速度函数的空间参量的雅可比矩阵，输出List<P_V_Pair>共3项，从第0到2项依次为对位置的x,y,z坐标的偏导
+        {
+
+        }
 
     }
 
@@ -159,10 +166,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //杂项
 
         public static readonly int n = 5;//牛顿法的迭代次数
-        public static List<P_V_Pair> NewtonIteration(Func<List<P_V_Pair>, List<P_V_Pair>> targetFunction, List<P_V_Pair> startPosition)
-        //牛顿迭代法求函数零点，输入函数为目标函数的雅可比逆与函数的乘积（即在迭代时会用到的J^-1 F），输入起始位置，输出零点
+        public static List<P_V_Pair> NewtonIteration(Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction, List<P_V_Pair> startPosition)
+        //牛顿迭代法求函数零点，输入函数为目标函数的雅可比逆与函数的乘积（即在迭代时会用到的J^-1 F），输入起始位置，输出(近似的)零点
         {
-
+            List<P_V_Pair> x = startPosition;
+            for (int i = 0; i < n; i++)
+            {
+                x -= JFFunction(x);
+            }
+            return x;
         }
     }
     public struct P_V_Pair
