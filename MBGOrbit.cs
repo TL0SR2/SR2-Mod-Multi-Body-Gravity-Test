@@ -22,15 +22,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
             try
             {
                 FindPlanetInformation();
-                // ForceReCalculation();
+                ForceReCalculation();
                 Debug.Log($"MBGOrbit.MBGOrbit -- Initialized successfully but ForceReCalculation not called");
             }
             catch (Exception ex)
             {
                 Debug.LogError($"MBGOrbit.MBGOrbit -- {ex.Message}");
             }
-
-            ForceReCalculation();
         }
 
         public void FindPlanetInformation()
@@ -124,6 +122,26 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return result;
         }
 
+        public static void TestMethod(double time)
+        {   Debug.LogWarning($"Test Method Debug Log -- SunNode  {SunNode}");
+            foreach (var planetData in planetList)
+            {
+                Debug.LogWarning($"Test Method Debug Log -- PlanetData  {planetData}");
+                try
+                {
+                    IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
+                    Debug.LogWarning($"Test Method Debug Log -- PlanetNode  {planetNode}");
+                    Vector3d planetSolarPosition = planetNode.GetSolarPositionAtTime(time);
+                    Debug.LogWarning($"Test Method Debug Log -- PlanetPosition  {planetSolarPosition}");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Test Method Debug Log Error");
+                    Debug.LogException(e);
+                }
+            }
+        }
+
         public static List<Vector3d> CalculateGravityJacobiAtTime(Vector3d CraftPosition, double time)
         {
             Vector3d PartialVecX = new Vector3d(0, 0, 0);
@@ -186,6 +204,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static readonly double GravityConst = 6.674E-11;
 
         public static double ForceReCalculateBeforeEnd = 1;
+
+        public static double TimeMultiplier
+        {
+            get
+            {
+                return Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier;
+            }
+        }
         private static double _listAccuracyTime
         {
             get
@@ -193,7 +219,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return MBGMath._calculationStepTime;
             }
         }
-        private static double _defaultDurationTime = 3600;
+        private static double _defaultDurationTime = 150;
 
         public static double CurrentTime
         {

@@ -40,9 +40,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             _calculationStepTime = value;
         }
+        public static Func<double, P_V_Pair, P_V_Pair> TestFunc = (time, input_P_V) =>
+        {
+            MBGOrbit.TestMethod(time);
+            return new P_V_Pair();
+        };
 
-
-        public static double _calculationStepTime { get; private set; } = 0.05;
+        public static double _calculationStepTime { get; private set; } = 0.1;
 
         public static Func<double, P_V_Pair, P_V_Pair> RKFunc = (time, input_P_V) =>
         //给出显式RK总的数值模拟迭代函数
