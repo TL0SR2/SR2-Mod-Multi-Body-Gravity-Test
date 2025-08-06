@@ -62,6 +62,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
             else
             {
                 CraftNode craftNode = _craftScriptRef(__instance).CraftNode as CraftNode;
+                //定期对mbgorbit执行重新计算的方法，以避免出现PVList为空值的情况
+                MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(craftNode);
+                    if (mbgOrbit == null)
+                    {
+                        Debug.LogError($"MBGOrbit for CraftNode {craftNode.NodeId} is null");
+                        mbgOrbit = new MBGOrbit(craftNode, craftNode.FlightState.Time, craftNode.SolarPosition, craftNode.SolarVelocity);
+                        //return true;
+                    }
+
+                    if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
+                    {
+                        mbgOrbit.ForceReCalculation();
+                    }
                 double deltaTime = __instance.TimeDelta;
                 try
                 {
@@ -238,7 +251,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     if (mbgOrbit == null)
                     {
                         Debug.LogError($"MBGOrbit for CraftNode {__instance.NodeId} is null");
-                        return true;
+                        mbgOrbit = new MBGOrbit(__instance, __instance.FlightState.Time, __instance.SolarPosition, __instance.SolarVelocity);
+                        //return true;
                     }
 
                     if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)

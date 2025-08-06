@@ -29,6 +29,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 Debug.LogError($"MBGOrbit.MBGOrbit -- {ex.Message}");
             }
+
+            ForceReCalculation();
         }
 
         public void FindPlanetInformation()
@@ -48,6 +50,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
             MBGMath.NumericalIntegration(MBG_PVList[n], n * _listAccuracyTime + _startTime, elapsedTime - elapsedTime % _listAccuracyTime, out List<P_V_Pair> PVList);
             UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
+            EndTime = startTime + elapsedTime;
             //接下来应该在此处执行激活重绘轨道线的操作
         }
 
