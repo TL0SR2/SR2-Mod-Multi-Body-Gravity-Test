@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+//using MathNet.Numerics.LinearAlgebra.Double;
+//using MathNet.Numerics.LinearAlgebra;
 namespace Assets.Scripts.Flight.Sim.MBG
 {
     public static class MBGMath
@@ -205,9 +207,44 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //Hollingswort方法  GL2，四阶精度，保辛
         {
             //计算公式：
-            // k1 = h * func(x_n + (3 - Math.Sqrt(3)) / 6 * h, y_n + (3 * k1 + (3 - 2 * Math.Sqrt(3) * k2)) / 12)
-            // k2 = h * func(x_n + (3 + Math.Sqrt(3)) / 6 * h, y_n + (3 * k2 + (3 + 2 * Math.Sqrt(3) * k1)) / 12)
+            // k1 = h * func(x_n + (3 - Math.Sqrt(3)) / 6 * h, y_n + (3 * k1 + (3 - 2 * Math.Sqrt(3)) * k2) / 12)
+            // k2 = h * func(x_n + (3 + Math.Sqrt(3)) / 6 * h, y_n + (3 * k2 + (3 + 2 * Math.Sqrt(3)) * k1) / 12)
             // y_n+1 = y_n + (k1 + k2) / 2
+
+            //第一部分：构造雅可比矩阵参量
+            //牛顿迭代法的目标函数F=(F1,F2)，F1和F2分别是上面两个计算公式移项之后得到的目标函数，自变量为K=(k1,k2)。
+            double[] tList = new double[] { h / 4, (3 - 2 * Math.Sqrt(3)) / 12 * h, (3 + 2 * Math.Sqrt(3)) / 12 * h, h / 4 };
+            double[][] plist = new double[][]
+            {
+                new double[]{(3 - Math.Sqrt(3)) / 6 ,1 / 4,(3 - 2 * Math.Sqrt(3)) / 12},
+                new double[]{(3 + Math.Sqrt(3)) / 6 ,(3 + 2 * Math.Sqrt(3)) / 12,1 / 4}
+            };
+            Func<List<P_V_Pair>, List<P_V_Pair>> A3p = CreateA3MatrixParam
+            (
+                plist,
+                (t, p) => JacobiFunc(x_n + t, y_n.Position + p)
+            );
+            //第二部分：构造目标函数
+
+            Func<List<P_V_Pair>, List<P_V_Pair>> F = CreateTargetFunction(plist, (t, p) => func(x_n + t, y_n + p));
+
+            //第三部分：构造迭代函数
+
+            Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction = K =>
+            {
+                return J12I_FCalculation_Full(A3p(K), tList, F(K));
+            };
+
+            //第四部分：牛顿法迭代，数据处理
+
+            P_V_Pair k0 = h * func(x_n, y_n);
+
+            List<P_V_Pair> KOut = NewtonIteration(JFFunction, new List<P_V_Pair> { k0, k0 });
+
+            P_V_Pair k1 = KOut[0];
+            P_V_Pair k2 = KOut[1];
+
+            return y_n + (k1 + k2) / 2;
         }
 
         //杂项
@@ -292,6 +329,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             t * t * t * (2 * a * b * c - a * a * z - b * b * y - c * c * x + x * y * z);
 
             return result;
+
+            //补注：实际上这个方法相当于对原矩阵作初等行变换之后提取其中的A3方阵部分求逆，可以用以下方方法和一些代数运算等价地简化。但是由于此方法完成早于下面的方法，所以不再做类似化简操作。
         };
         public static Func<double, double, double, double, double, double, double, P_V_Pair, P_V_Pair> J6I_FCalculation_Full = (t, x, y, z, a, b, c, F) =>
         //主要介绍参考上面的计算参数。这个方法在上述方法的基础上计算出前三个分量，输出完整的六分量矢量。
@@ -307,8 +346,63 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(t * F[3] - F[0], t * F[4] - F[1], t * F[5] - F[2], x * F[0] + a * F[1] + b * F[2] - F[3], a * F[0] + y * F[1] + c * F[2] - F[4], b * F[0] + c * F[1] + z * F[2] - F[5]);
         };
 
+        public static Func<List<P_V_Pair>, double[], List<P_V_Pair>, List<P_V_Pair>> J12I_FCalculation_Full = (pL, tL, F) =>
+        //GL2中使用的雅可比矩阵称为J12。这个方法输入矩阵参量和输入函数，输出由A6矩阵计算得到的6维度核心矢量。
+        //矩阵形如：（J6矩阵如上，用x,y,z,a,b,c,t代表；J6N是对角元为0的J6矩阵。）
+        // J61 J6N2
+        // J6N3 J64
+        //输入的pL共4项，每项依次代表J61，J6N2到J64的J6矩阵对应的A3矩阵参量，每项内依次为xyzabc，tL同理。
+        {
+            double t11 = tL[0];
+            double t12 = tL[1];
+            double t21 = tL[2];
+            double t22 = tL[3];
+            //第一部分：初等行变换，消去J61与J64的右下角分块，便于提取A3矩阵组合成A6矩阵。S1到S4是行变换的时候乘的系数。
+            P_V_Pair inputVec = new P_V_Pair(F[0][3], F[0][4], F[0][5], F[1][3], F[1][4], F[1][5]);
+            P_V_Pair remainVec = new P_V_Pair(F[0][0], F[0][1], F[0][2], F[1][0], F[1][1], F[1][2]);
+            double S1 = t22 / (t11 * t22 - t12 * t21);
+            double S2 = -t12 / (t11 * t22 - t12 * t21);
+            double S3 = -t21 / (t11 * t22 - t12 * t21);
+            double S4 = t11 / (t11 * t22 - t12 * t21);
+            inputVec[0] += S1 * remainVec[0] + S2 * remainVec[3];
+            inputVec[1] += S1 * remainVec[1] + S2 * remainVec[4];
+            inputVec[2] += S1 * remainVec[2] + S2 * remainVec[5];
+            inputVec[3] += S3 * remainVec[0] + S4 * remainVec[3];
+            inputVec[4] += S3 * remainVec[1] + S4 * remainVec[4];
+            inputVec[5] += S3 * remainVec[2] + S4 * remainVec[5];
+            var A311p = pL[0];
+            A311p[0] -= S1;
+            A311p[1] -= S1;
+            A311p[2] -= S1;
+            pL[0] = A311p;
+            var A322p = pL[3];
+            A322p[0] -= S4;
+            A322p[1] -= S4;
+            A322p[2] -= S4;
+            pL[3] = A322p;
 
-        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> AI_VCalculation = (x, y, z, a, b, c, F) =>
+            //第二部分：A6阵求解 求解得到输出矢量的第1，2，3，7，8，9项组成的核心矢量
+            P_V_Pair Out1 = A6I_VCalculation(pL, inputVec);
+
+            //第三部分：求出剩余部分，即第4，5，6，10，11，12项
+
+            P_V_Pair Out2 = new P_V_Pair();
+            Out2[0] = (t22 * (remainVec[0] + Out1[0]) - t12 * (remainVec[3] + Out1[3])) / (t11 * t22 - t21 * t12);
+            Out2[1] = (t22 * (remainVec[1] + Out1[1]) - t12 * (remainVec[4] + Out1[4])) / (t11 * t22 - t21 * t12);
+            Out2[2] = (t22 * (remainVec[2] + Out1[2]) - t12 * (remainVec[5] + Out1[5])) / (t11 * t22 - t21 * t12);
+            Out2[3] = (-t21 * (remainVec[0] + Out1[0]) + t11 * (remainVec[3] + Out1[3])) / (t11 * t22 - t21 * t12);
+            Out2[4] = (-t21 * (remainVec[1] + Out1[1]) + t11 * (remainVec[4] + Out1[4])) / (t11 * t22 - t21 * t12);
+            Out2[5] = (-t21 * (remainVec[2] + Out1[2]) + t11 * (remainVec[5] + Out1[5])) / (t11 * t22 - t21 * t12);
+
+            return new List<P_V_Pair>
+            {
+                new P_V_Pair(Out1[0],Out1[1],Out1[2],Out2[0],Out2[1],Out2[2]),
+                new P_V_Pair(Out1[3],Out1[4],Out1[5],Out2[3],Out2[4],Out2[5])
+            };
+        };
+
+
+        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> A3I_VCalculation = (x, y, z, a, b, c, F) =>
         //形如这样的三阶方阵：
         // x a b
         // a y c
@@ -323,7 +417,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return result;
         };
 
-        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> A_VCalculation = (x, y, z, a, b, c, F) =>
+        public static Func<double, double, double, double, double, double, Vector3d, Vector3d> A3_VCalculation = (x, y, z, a, b, c, F) =>
         //形如这样的三阶方阵：
         // x a b
         // a y c
@@ -338,6 +432,164 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return result;
         };
 
+        public static Func<List<P_V_Pair>, P_V_Pair, P_V_Pair> A6I_VCalculation = (pL, F) =>
+        //将上面两个方法计算的方阵称为A3方阵。将4个A3方阵拼在一起得到一个新的方阵称为A6方阵。求出他的逆，并与输入的六维矢量F相乘，输出这个乘积。
+        //A6方阵形式如下：
+        // A31 A32
+        // A33 A34
+        //每个A3方阵有6个独立参数，四个A3方阵可以各不相同，因此输入的List<P_V_Pair>应该包含4组值，顺序按A31到A34矩阵，每组值内的第0项到5项依次为A3方阵的xyzabc值。
+        {
+            /*
+            Matrix<double> A31 = Matrix<double>.Build.DenseOfColumnArrays(pL[0].ToA3Array());
+            Matrix<double> A32 = Matrix<double>.Build.DenseOfColumnArrays(pL[1].ToA3Array());
+            Matrix<double> A33 = Matrix<double>.Build.DenseOfColumnArrays(pL[2].ToA3Array());
+            Matrix<double> A34 = Matrix<double>.Build.DenseOfColumnArrays(pL[3].ToA3Array());
+
+            Matrix<double> A6 = Matrix<double>.Build.DenseOfMatrixArray(new Matrix<double>[,] { { A31, A32 }, { A33, A34 } });
+            */
+
+            var x1 = pL[0][0];
+            var y1 = pL[0][1];
+            var z1 = pL[0][2];
+            var a1 = pL[0][3];
+            var b1 = pL[0][4];
+            var c1 = pL[0][5];
+            var x2 = pL[1][0];
+            var y2 = pL[1][1];
+            var z2 = pL[1][2];
+            var a2 = pL[1][3];
+            var b2 = pL[1][4];
+            var c2 = pL[1][5];
+            var x3 = pL[2][0];
+            var y3 = pL[2][1];
+            var z3 = pL[2][2];
+            var a3 = pL[2][3];
+            var b3 = pL[2][4];
+            var c3 = pL[2][5];
+            var x4 = pL[3][0];
+            var y4 = pL[3][1];
+            var z4 = pL[3][2];
+            var a4 = pL[3][3];
+            var b4 = pL[3][4];
+            var c4 = pL[3][5];
+
+            double[,] A6 = new double[,]
+            {
+                {x1,a1,b1,x2,a2,b2},
+                {a1,y1,c1,a2,y2,c2},
+                {b1,c1,z1,b2,c2,z2},
+                {x3,a3,b3,x4,a4,b4},
+                {a3,y3,c3,a4,y4,c4},
+                {b3,c3,z3,b4,c4,z4}
+            };
+
+            return new P_V_Pair(Matrix_I_V_Calculation(A6, 6, F.ToDoubleArray()));
+
+        };
+
+
+        public static Func<double[][], Func<double,Vector3d, List<Vector3d>>, Func<List<P_V_Pair>, List<P_V_Pair>>> CreateA3MatrixParam = (pL, Func) =>
+        //输入系统参量列表tL，这个数组的结构是这样的，第一项指定他对应第几个k/f值，第二项指定这个目标函数内的时间附加量，剩余的参量依次指定各项的系数（参考butcher表），输入引力雅可比函数Func，输出这样一个函数：对这个函数输入参量K，将会输出一个六元矢量列表，其中，每一项的分量是由K和系数决定的J6矩阵中的A3矩阵的参量，依次为xyzabc；列表中元素的顺序由pL指定。
+        {
+            Func<List<P_V_Pair>, List<P_V_Pair>> OutFunc = K =>
+            {
+                List<P_V_Pair> outList = new List<P_V_Pair>{};
+                for (int i = 0; i < pL.Length; i++)
+                {
+                    for (int k = 1; k < pL[i].Length; k++)
+                    {
+                        Vector3d inputVec = new Vector3d(0, 0, 0);
+                        for (int j = 1; j < pL[i].Length; j++)
+                        {
+                            inputVec += pL[i][j] * K[j - 1].Position;
+                        }
+                        List<Vector3d> JacobiVector = Func(pL[i][0] * h, inputVec);
+                        P_V_Pair outVec = new P_V_Pair(JacobiVector[0][0], JacobiVector[1][1], JacobiVector[2][2], JacobiVector[0][1], JacobiVector[0][2], JacobiVector[1][2]);
+                        outVec *= h * pL[i][k];
+                        outList.Add(outVec);
+                    }
+                }
+                return outList;
+            };
+            return OutFunc;
+        };
+
+        public static Func<List<P_V_Pair>, List<P_V_Pair>> CreateTargetFunction(double[][] paramList, Func<double, P_V_Pair, P_V_Pair> func)
+        {
+            Func<List<P_V_Pair>, List<P_V_Pair>> OutFunc = K =>
+            {
+                List<P_V_Pair> outList = new List<P_V_Pair> { };
+                for (int i = 0; i < paramList.Length; i++)
+                {
+                    P_V_Pair inputVec = new P_V_Pair();
+                    for (int j = 1; j < paramList[i].Length; j++)
+                    {
+                        inputVec += paramList[i][j] * K[j - 1];
+                    }
+                    P_V_Pair fout = h * func(paramList[i][0] * h, inputVec) - K[i];
+                    outList.Add(fout);
+                }
+                return outList;
+            };
+            return OutFunc;
+        }
+
+
+        public static double[] Matrix_I_V_Calculation(double[,] matrix, int n, double[] v)
+        //输入一个矩阵，输入阶数，输出将矩阵求逆之后与向量相乘的结果（基于矩阵的LU分解）
+        {
+            Matrix_LUDecomposition(matrix, n, out double[,] L, out double[,] U);
+            double[] y = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                y[i] = v[i];
+                for (int j = 0; j < i; j++)
+                {
+                    y[i] -= L[i, j] * y[j];
+                }
+            }
+            double[] x = new double[n];
+            for (int i = n - 1; i <= 0; i--)
+            {
+                x[i] = y[i];
+                for (int j = n - 1; j > i; j--)
+                {
+                    x[i] -= U[i, j] * x[j];
+                }
+                x[i] /= U[i, i];
+            }
+            return x;
+        }
+
+
+        public static void Matrix_LUDecomposition(double[,] A, int n,out double[,] L,out double[,] U)
+        //输入矩阵元,输入矩阵阶数，进行LU分解,输出列表包括两项，依次为L矩阵和U矩阵
+        {
+            L = new double[n,n];
+            U = new double[n,n];
+            for (int k = 0; k < n; k++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    if (j < k)
+                    {
+                        U[k, j] = 0;
+                        L[j, k] = 0;
+                    }
+                    else
+                    {
+                        U[k, j] = A[k, j];
+                        L[j, k] = A[j, k];
+                        for (int m = 0; m < k; m++)
+                        {
+                            U[k, j] -= U[m, j] * L[k, m];
+                            L[j, k] -= L[j, m] * U[m, k];
+                        }
+                        L[j, k] /= U[k, k];
+                    }
+                }
+            }
+        }
 
 
         public static readonly int n = 10;//牛顿法的迭代次数
@@ -365,6 +617,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this.vx = vx;
             this.vy = vy;
             this.vz = vz;
+        }
+        public P_V_Pair(double[] list)
+        {
+            px = list[0];
+            py = list[1];
+            pz = list[2];
+            vx = list[3];
+            vy = list[4];
+            vz = list[5];
         }
         public P_V_Pair(Vector3d Position, Vector3d Velocity)
         {
@@ -479,6 +740,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return Math.Sqrt(SqrMagnitude);
             }
         }
+
+        public double[] ToDoubleArray()
+        {
+            return new double[] { px, py, pz, vx, vy, vz };
+        }
+
+        public double[][] ToA3Array()
+        {
+            return new double[][] { new double[] { px, vx, vy }, new double[] { vx, py, vz }, new double[] { vy, vz, pz } };
+        }
+
         public static readonly P_V_Pair Zero = new P_V_Pair(0, 0, 0, 0, 0, 0);
 
         public double px;
