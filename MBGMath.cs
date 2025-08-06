@@ -201,14 +201,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return y_n + k1;
         }
 
-        public static P_V_Pair HollingsworthMethod(P_V_Pair y_n, double x_n, Func<double, P_V_Pair, P_V_Pair> func, Func<double, Vector3d, List<Vector3d>> JacobiFunc)
-        //Hollingswort方法  GL2，四阶精度，保辛
-        {
-            //计算公式：
-            // k1 = h * func(x_n + (3 - Math.Sqrt(3)) / 6 * h, y_n + (3 * k1 + (3 - 2 * Math.Sqrt(3) * k2)) / 12)
-            // k2 = h * func(x_n + (3 + Math.Sqrt(3)) / 6 * h, y_n + (3 * k2 + (3 + 2 * Math.Sqrt(3) * k1)) / 12)
-            // y_n+1 = y_n + (k1 + k2) / 2
-        }
+        // public static P_V_Pair HollingsworthMethod(P_V_Pair y_n, double x_n, Func<double, P_V_Pair, P_V_Pair> func, Func<double, Vector3d, List<Vector3d>> JacobiFunc)
+        // //Hollingswort方法  GL2，四阶精度，保辛
+        // {
+        //     //计算公式：
+        //     // k1 = h * func(x_n + (3 - Math.Sqrt(3)) / 6 * h, y_n + (3 * k1 + (3 - 2 * Math.Sqrt(3) * k2)) / 12)
+        //     // k2 = h * func(x_n + (3 + Math.Sqrt(3)) / 6 * h, y_n + (3 * k2 + (3 + 2 * Math.Sqrt(3) * k1)) / 12)
+        //     // y_n+1 = y_n + (k1 + k2) / 2
+        // }
 
         //杂项
 

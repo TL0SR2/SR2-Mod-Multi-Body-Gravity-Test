@@ -14,13 +14,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static IPlanetNode SunNode { get; set; }
         public static IReadOnlyList<IPlanetData> planetList { get; set; }
-        public MBGOrbit(double startTime, Vector3d startPosition, Vector3d startVelocity)
+        public MBGOrbit(CraftNode craftNode, double startTime, Vector3d startPosition, Vector3d startVelocity)
         {
+            SetMBGOrbit(craftNode, this);
             this._startTime = startTime;
             this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
-            
-            FindPlanetInformation();
-            ForceReCalculation();
+            try
+            {
+                FindPlanetInformation();
+                // ForceReCalculation();
+                Debug.Log($"MBGOrbit.MBGOrbit -- Initialized successfully but ForceReCalculation not called");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"MBGOrbit.MBGOrbit -- {ex.Message}");
+            }
         }
 
         public void FindPlanetInformation()
@@ -88,7 +96,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static Dictionary<double, Vector3d> GetPlanetsPositionAtTime(double time)
         {
             // 输出值Dictionary<double, Vector3d>中每一个k-v对表示一个行星在time时的数据；double表示行星的质量，Vector3d表示行星的位置。
-            Dictionary<double, Vector3d> result = new Dictionary<double, Vector3d>{};
+            Dictionary<double, Vector3d> result = new Dictionary<double, Vector3d> { };
             foreach (IPlanetData planetData in planetList)
             {
                 IPlanetNode planetNode = SunNode.FindPlanet(planetData.Name);
@@ -171,7 +179,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
         private readonly double _startTime;
-        public double EndTime{ get; private set; }
+        public double EndTime { get; private set; }
         public static readonly double GravityConst = 6.674E-11;
 
         public static double ForceReCalculateBeforeEnd = 1;
@@ -186,7 +194,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static double CurrentTime
         {
-            get=>Game.Instance.FlightScene.FlightState.Time;
+            get => Game.Instance.FlightScene.FlightState.Time;
             //get => Game.Instance.GameState.GetCurrentTime();
         }
     }
