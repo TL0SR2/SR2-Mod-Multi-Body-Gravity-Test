@@ -251,6 +251,54 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return y_n + (k1 + k2) / 2;
         }
 
+        public static P_V_Pair KuntzmannMethod(P_V_Pair y_n, double x_n, Func<double, P_V_Pair, P_V_Pair> func, Func<double, Vector3d, List<Vector3d>> JacobiFunc)
+        //KuntzmannMethod方法  GL3，六阶精度，保辛
+        {
+            //计算公式：
+            // k1 = h * func(x_n + (5 - Math.Sqrt(15)) / 10 * h, y_n + 5/36 * k1 + (10 - 3*Math.Sqrt(15)) / 45 * k2 + (25 - 6*Math.Sqrt(15)) / 180 * k3)
+            // k2 = h * func(x_n + h/2, y_n + (10 + 3*Math.Sqrt(15)) / 72 * k1 + 2/9 * k2 + (10 - 3*Math.Sqrt(15)) / 72 * k3)
+            // k3 = h * func(x_n + (5 + Math.Sqrt(15)) / 10 * h, y_n + (25 + 6*Math.Sqrt(15)) / 180 * k1 + (10 + 3*Math.Sqrt(15)) / 45 * k2 + 5/36 * k3)
+            // y_n+1 = y_n + (5*k1+8*k2+5*k3)/18
+
+            //第一部分：构造雅可比矩阵参量
+            //牛顿迭代法的目标函数F=(F1,F2,F3)，F1，F2和F3分别是上面三个计算公式移项之后得到的目标函数，自变量为K=(k1,k2,k3)。
+
+            double[] tList = new double[] { 5 / 36 * h, (10 - 3 * Math.Sqrt(15)) / 45 * h, (25 - 6 * Math.Sqrt(15)) / 180 * h, (10 + 3 * Math.Sqrt(15)) / 72 * h, 2 / 9 * h, (10 - 3 * Math.Sqrt(15)) / 72 * h, (25 + 6 * Math.Sqrt(15)) / 180 * h, (10 + 3 * Math.Sqrt(15)) / 45 * h, 5 / 36 * h };
+            double[][] plist = new double[][]
+            {
+                new double[]{(5 - Math.Sqrt(15)) / 10 , 5/36,(10 - 3*Math.Sqrt(15)) / 45,(25 - 6*Math.Sqrt(15)) / 180},
+                new double[]{1/2,                       (10 + 3*Math.Sqrt(15)) / 72,2/9,(10 - 3*Math.Sqrt(15)) / 72},
+                new double[]{(5 + Math.Sqrt(15)) / 10 , (25 + 6*Math.Sqrt(15)) / 180,(10 + 3*Math.Sqrt(15)) / 45,5/36}
+            };
+            Func<List<P_V_Pair>, List<P_V_Pair>> A3p = CreateA3MatrixParam
+            (
+                plist,
+                (t, p) => JacobiFunc(x_n + t, y_n.Position + p)
+            );
+            //第二部分：构造目标函数
+
+            Func<List<P_V_Pair>, List<P_V_Pair>> F = CreateTargetFunction(plist, (t, p) => func(x_n + t, y_n + p));
+
+            //第三部分：构造迭代函数
+
+            Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction = K =>
+            {
+                return J18I_FCalculation_Full(A3p(K), tList, F(K));
+            };
+
+            //第四部分：牛顿法迭代，数据处理
+
+            P_V_Pair k0 = h * func(x_n, y_n);
+
+            List<P_V_Pair> KOut = NewtonIteration(JFFunction, new List<P_V_Pair> { k0, k0, k0 });
+
+            P_V_Pair k1 = KOut[0];
+            P_V_Pair k2 = KOut[1];
+            P_V_Pair k3 = KOut[2];
+
+            return y_n + (5 * k1 + 8 * k2 + 5 * k3) / 18;
+        }
+
         //杂项
 
 
@@ -351,7 +399,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         };
 
         public static Func<List<P_V_Pair>, double[], List<P_V_Pair>, List<P_V_Pair>> J12I_FCalculation_Full = (pL, tL, F) =>
-        //GL2中使用的雅可比矩阵称为J12。这个方法输入矩阵参量和输入函数，输出由A6矩阵计算得到的6维度核心矢量。
+        //GL2中使用的雅可比矩阵称为J12。这个方法输入矩阵参量和输入函数，输出12维牛顿迭代法函数矢量。
         //矩阵形如：（J6矩阵如上，用x,y,z,a,b,c,t代表；J6N是对角元为0的J6矩阵。）
         // J61 J6N2
         // J6N3 J64
@@ -402,6 +450,87 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 new P_V_Pair(Out1[0],Out1[1],Out1[2],Out2[0],Out2[1],Out2[2]),
                 new P_V_Pair(Out1[3],Out1[4],Out1[5],Out2[3],Out2[4],Out2[5])
+            };
+        };
+
+        public static Func<List<P_V_Pair>, double[], List<P_V_Pair>, List<P_V_Pair>> J18I_FCalculation_Full = (pL, tL, F) =>
+        //GL3中使用的雅可比矩阵称为J18。这个方法输入矩阵参量和输入函数，输出18维牛顿迭代法函数矢量。
+        //矩阵形如：（标识同J12
+        // J61 J6N2 J6N3
+        // J6N4 J65 J6N6
+        // J6N7 J6N8 J69
+        //输入的pL共9项，每项依次代表J61，J6N2到J69的J6矩阵对应的A3矩阵参量，每项内依次为xyzabc，tL同理。
+        {
+            double t11 = tL[0];
+            double t12 = tL[1];
+            double t13 = tL[2];
+            double t21 = tL[3];
+            double t22 = tL[4];
+            double t23 = tL[5];
+            double t31 = tL[6];
+            double t32 = tL[7];
+            double t33 = tL[8];
+            //第一部分：初等行变换，消去J61，J65和J69的右下角分块，便于提取A3矩阵组合成A9矩阵。S1到S9是行变换的时候乘的系数，具体分布是这样的：消去J61时，从上到下依次为S1到S3；J65对应S4到S6；J69对应S7到S9。
+            //S1到S9的计算实际上相当于求一个三阶矩阵的逆矩阵。
+            double[] inputVec = new double[] { F[0][3], F[0][4], F[0][5], F[1][3], F[1][4], F[1][5], F[2][3], F[2][4], F[2][5] };
+            double[] remainVec = new double[] { F[0][0], F[0][1], F[0][2], F[1][0], F[1][1], F[1][2], F[2][0], F[2][1], F[2][2] };
+            double det = t11 * t22 * t33 + t12 * t23 * t31 + t13 * t21 * t32 - t11 * t23 * t32 - t12 * t21 * t33 - t13 * t22 * t31;
+            double S1 = (t22 * t33 - t23 * t32) / det;
+            double S2 = (t13 * t32 - t12 * t33) / det;
+            double S3 = (t12 * t23 - t13 * t22) / det;
+            double S4 = (t23 * t31 - t21 * t33) / det;
+            double S5 = (t11 * t33 - t13 * t31) / det;
+            double S6 = (t13 * t21 - t11 * t23) / det;
+            double S7 = (t21 * t32 - t22 * t31) / det;
+            double S8 = (t12 * t31 - t11 * t32) / det;
+            double S9 = (t11 * t22 - t12 * t21) / det;
+            inputVec[0] += S1 * remainVec[0] + S2 * remainVec[3] + S3 * remainVec[6];
+            inputVec[1] += S1 * remainVec[1] + S2 * remainVec[4] + S3 * remainVec[7];
+            inputVec[2] += S1 * remainVec[2] + S2 * remainVec[5] + S3 * remainVec[8];
+            inputVec[3] += S4 * remainVec[0] + S5 * remainVec[3] + S6 * remainVec[6];
+            inputVec[4] += S4 * remainVec[1] + S5 * remainVec[4] + S6 * remainVec[7];
+            inputVec[5] += S4 * remainVec[2] + S5 * remainVec[5] + S6 * remainVec[8];
+            inputVec[6] += S7 * remainVec[0] + S8 * remainVec[3] + S9 * remainVec[6];
+            inputVec[7] += S7 * remainVec[1] + S8 * remainVec[4] + S9 * remainVec[7];
+            inputVec[8] += S7 * remainVec[2] + S8 * remainVec[5] + S9 * remainVec[8];
+            var A311p = pL[0];
+            A311p[0] -= S1;
+            A311p[1] -= S1;
+            A311p[2] -= S1;
+            pL[0] = A311p;
+            var A322p = pL[4];
+            A322p[0] -= S5;
+            A322p[1] -= S5;
+            A322p[2] -= S5;
+            pL[4] = A322p;
+            var A333p = pL[8];
+            A322p[0] -= S9;
+            A322p[1] -= S9;
+            A322p[2] -= S9;
+            pL[8] = A333p;
+
+            //第二部分：A9阵求解 求解得到输出矢量的第1，2，3，7，8，9，13，14，15项组成的核心矢量
+            double[] Out1 = A9I_VCalculation(pL, inputVec);
+
+            //第三部分：求出剩余部分，即第4，5，6，10，11，12，16，17，18项
+
+            double[] Out2 = new double[9];
+            Out2[0] = S1 * (Out1[0] + remainVec[0]) + S2 * (Out1[3] + remainVec[3]) + S3 * (Out1[6] + remainVec[6]);
+            Out2[1] = S1 * (Out1[1] + remainVec[1]) + S2 * (Out1[4] + remainVec[4]) + S3 * (Out1[7] + remainVec[7]);
+            Out2[2] = S1 * (Out1[2] + remainVec[2]) + S2 * (Out1[5] + remainVec[5]) + S3 * (Out1[8] + remainVec[8]);
+            Out2[3] = S4 * (Out1[0] + remainVec[0]) + S5 * (Out1[3] + remainVec[3]) + S6 * (Out1[6] + remainVec[6]);
+            Out2[4] = S4 * (Out1[1] + remainVec[1]) + S5 * (Out1[4] + remainVec[4]) + S6 * (Out1[7] + remainVec[7]);
+            Out2[5] = S4 * (Out1[2] + remainVec[2]) + S5 * (Out1[5] + remainVec[5]) + S6 * (Out1[8] + remainVec[8]);
+            Out2[6] = S7 * (Out1[0] + remainVec[0]) + S8 * (Out1[3] + remainVec[3]) + S9 * (Out1[6] + remainVec[6]);
+            Out2[7] = S7 * (Out1[1] + remainVec[1]) + S8 * (Out1[4] + remainVec[4]) + S9 * (Out1[7] + remainVec[7]);
+            Out2[8] = S7 * (Out1[2] + remainVec[2]) + S8 * (Out1[5] + remainVec[5]) + S9 * (Out1[8] + remainVec[8]);
+
+
+            return new List<P_V_Pair>
+            {
+                new P_V_Pair(Out1[0],Out1[1],Out1[2],Out2[0],Out2[1],Out2[2]),
+                new P_V_Pair(Out1[3],Out1[4],Out1[5],Out2[3],Out2[4],Out2[5]),
+                new P_V_Pair(Out1[6],Out1[7],Out1[8],Out2[6],Out2[7],Out2[8]),
             };
         };
 
@@ -488,6 +617,41 @@ namespace Assets.Scripts.Flight.Sim.MBG
             };
 
             return new P_V_Pair(Matrix_I_V_Calculation(A6, 6, F.ToDoubleArray()));
+
+        };
+
+        public static Func<List<P_V_Pair>, double[], double[]> A9I_VCalculation = (pL, F) =>
+        //将9个A3方阵拼在一起得到一个新的方阵称为96方阵。求出他的逆，并与输入的9维矢量F相乘，输出这个乘积。
+        //A9方阵形式如下：
+        // A31 A32 A33
+        // A34 A35 A36
+        // A37 A38 A39
+        //每个A3方阵有6个独立参数，9个A3方阵可以各不相同，因此输入的List<P_V_Pair>应该包含9组值，顺序按A31到A39矩阵，每组值内的第0项到5项依次为A3方阵的xyzabc值。
+        {
+            double[,] A9 = new double[9,9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                int CenterRow = 3 * (i / 3) + 1;
+                int CenterColumn = 3 * (i % 3) + 1;
+                double x = pL[i][0];
+                double y = pL[i][1];
+                double z = pL[i][2];
+                double a = pL[i][3];
+                double b = pL[i][4];
+                double c = pL[i][5];
+                A9[CenterRow - 1, CenterColumn - 1] = x;
+                A9[CenterRow - 1, CenterColumn] = a;
+                A9[CenterRow - 1, CenterColumn + 1] = b;
+                A9[CenterRow, CenterColumn - 1] = a;
+                A9[CenterRow, CenterColumn] = y;
+                A9[CenterRow, CenterColumn + 1] = c;
+                A9[CenterRow + 1, CenterColumn - 1] = b;
+                A9[CenterRow + 1, CenterColumn] = c;
+                A9[CenterRow + 1, CenterColumn + 1] = z;
+            }
+
+            return Matrix_I_V_Calculation(A9, 9, F);
 
         };
 
