@@ -260,7 +260,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         mbgOrbit.ForceReCalculation();
                     }
                     //此处已经替换成自己计算得到的位置信息
-                    P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime);
+                    Vector3d planetSolarPosition = SunNode.FindPlanet(CurrentPlanet.Name).SolarPosition;
+                    Vector3d planetSolarVelocity = SunNode.FindPlanet(CurrentPlanet.Name).SolarVelocity;
+                    P_V_Pair PlanetPVState = new P_V_Pair(planetSolarPosition, planetSolarVelocity);
+                    P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime) - PlanetPVState;
                     Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
                     Vector3d velocity = State.Velocity + vector;
                     __instance.SetStateVectorsAtDefaultTime(State.Position, velocity);
