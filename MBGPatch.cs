@@ -89,7 +89,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error calculating gravity frame: {ex.Message}");
+                    //Debug.LogError($"Error calculating gravity frame: {ex.Message}");
                     // 跳回原方法
                     Vector3d craftSolarPosition = craftNode.SolarPosition;
                     IPlanetNode SunNode = craftNode.Parent;
@@ -114,7 +114,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
 
 
-                Debug.Log("test" + craftNode.SolarPosition + " " + craftNode.Orbit.Time);
+                //Debug.Log("test" + craftNode.SolarPosition + " " + craftNode.Orbit.Time);
 
                 CraftFlightData2GravityFrame2[__instance] = gravityFrame2;
             }

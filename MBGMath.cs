@@ -8,6 +8,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 {
     public static class MBGMath
     {
+        public static void SetStep(double value)
+        {
+            _calculationStepTime = value;
+        }
         public static bool FloatEqual(double num1, double num2)
         {
             return Math.Abs(num1 - num2) <= 1E-9;
@@ -40,6 +44,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             _calculationStepTime = value;
         }
+        
         public static Func<double, P_V_Pair, P_V_Pair> TestFunc = (time, input_P_V) =>
         {
             MBGOrbit.TestMethod(time);
