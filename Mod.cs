@@ -1,3 +1,4 @@
+using Assets.Packages.DevConsole;
 using HarmonyLib;
 
 namespace Assets.Scripts
@@ -35,6 +36,18 @@ namespace Assets.Scripts
         {
             DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Math Calculation Step", value => MBGMath.SetMBGCalculationStep(value));
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
+            DevConsoleApi.RegisterCommand("SetMGBStep", delegate(double input)
+            {
+                if (input > 0)
+                {
+                    MBGMath.SetStep(input);
+                    Debug.LogFormat("Set Step to {0}", input);
+                }
+                else
+                {
+                    Debug.LogFormat("Invalid Step input: {0}", input);
+                }
+            });
         }
 
         public static void CodeAnnotation(string str)

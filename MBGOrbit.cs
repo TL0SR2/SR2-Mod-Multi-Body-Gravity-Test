@@ -121,7 +121,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             return result;
         }
-
+        
         public static void TestMethod(double time)
         {   Debug.LogWarning($"Test Method Debug Log -- SunNode  {SunNode}");
             foreach (var planetData in planetList)
