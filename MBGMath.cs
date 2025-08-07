@@ -12,13 +12,29 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             return Math.Abs(num1 - num2) <= 1E-9;
         }
-        public static Vector3d Interpolation(Vector3d vec1, Vector3d vec2, double ratio)
+        public static Vector3d LinearInterpolation(Vector3d vec1, Vector3d vec2, double ratio)
         {
             return (1 - ratio) * vec1 + ratio * vec2;
         }
-        public static P_V_Pair Interpolation(P_V_Pair vec1, P_V_Pair vec2, double ratio)
+        public static P_V_Pair LinearInterpolation(P_V_Pair vec1, P_V_Pair vec2, double ratio)
         {
             return (1 - ratio) * vec1 + ratio * vec2;
+        }
+
+
+        public static P_V_Pair HermiteInterpolation(P_V_Pair vec1, P_V_Pair vec2, double T1, double T2, double t)
+        //Hermite插值法，输出的拟合函数会同时考虑插值点的函数值和导数值。非常适合用于位置-速度二元拟合喵
+        {
+            Func<double, double, double, double> h0 = (x, x1, x2) => (1 + 2 * (x - x1) / (x2 - x1)) * Math.Pow((x - x2) / (x1 - x2), 2);
+            Func<double, double, double, double> h1 = (x, x1, x2) => (1 + 2 * (x - x2) / (x1 - x2)) * Math.Pow((x - x1) / (x2 - x1), 2);
+            Func<double, double, double, double> g0 = (x, x1, x2) => (x - x1) * Math.Pow((x - x2) / (x1 - x2), 2);
+            Func<double, double, double, double> g1 = (x, x1, x2) => (x - x2) * Math.Pow((x - x1) / (x2 - x1), 2);
+
+            Func<double, double, double, double, double, double, double, double> H3 = (x, x1, x2, y1, y2, yD1, yD2) => y1 * h0(x, x1, x2) + y2 * h1(x, x1, x2) + yD1 * g0(x, x1, x2) + yD2 * g1(x, x1, x2);
+
+            Vector3d Position = new Vector3d(H3(t, T1, T2, vec1[0], vec2[0], vec1[3], vec2[3]), H3(t, T1, T2, vec1[1], vec2[1], vec1[4], vec2[4]), H3(t, T1, T2, vec1[2], vec2[2], vec1[5], vec2[5]));
+            Vector3d Velocity = LinearInterpolation(vec1.Velocity, vec2.Velocity, (t - T1) / (T2 - T1));
+            return new P_V_Pair(Position, Velocity);
         }
 
         public static void NumericalIntegration(P_V_Pair startPV, double startTime, double elapsedTime, out List<P_V_Pair> PVOut)

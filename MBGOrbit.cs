@@ -65,7 +65,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVPairFromTime -- Time Out Of Range");
                 return P_V_Pair.Zero;
             }
-            return MBGMath.Interpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
+            double Time1 = _startTime + n * _listAccuracyTime;
+            double Time2 = _startTime + (n+1) * _listAccuracyTime;
+            //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
+            return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], Time1, Time2, time);
         }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
