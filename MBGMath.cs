@@ -47,7 +47,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(PVPair);
-                PVPair = MBGMath_CaculationMethod.ClassicRK4Method(PVPair, time, RKFunc);
+                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, GravityFunc);
                 time += realStepTime;
             }
 
@@ -316,8 +316,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             return y_n + (5 * k1 + 8 * k2 + 5 * k3) / 18;
         }
-
-        //杂项
 
 
         public static Func<double, double, double, double, double, double, double, P_V_Pair, Vector3d> J6I_FCalculation = (t, x, y, z, a, b, c, F) =>
@@ -778,6 +776,68 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
 
+        //第三部分：其他数值计算方法
+
+        //Störmer方法：这一方法是双步方法，输入yn-1和yn，输出yn+1。具有计算速度很快并且在保守场内很好保持能量守恒特性的优点。
+
+        public static P_V_Pair StormerMethod(P_V_Pair y_0, P_V_Pair y_1, double x_0, Func<double, Vector3d, Vector3d> func)
+        //Stormer，二阶精度，输入y0和y1以及y0对应时间x0，输入万有引力函数，输出y2
+        {
+            Vector3d p0 = y_0.Position;
+            Vector3d p1 = y_1.Position;
+            Vector3d p2 = 2 * p1 - p0 + h * h * func(x_0 + h, p1);
+            Vector3d v1 = y_1.Velocity;
+            Vector3d v2 = v1 + h / 2 * (func(x_0 + h, p1) + func(x_0 + 2 * h, p2));//此为梯形积分法估计速度，优点为有保持能量守恒的趋势
+            //Vector3d v2 = (3 * p2 - 4 * p1 + p0) / 2 * h;//此为中心差分法估计速度，优点为计算速度快
+            return new P_V_Pair(p2, v2);
+        }
+
+        //Verlet方法：经典的保辛的单步算法。
+
+        public static P_V_Pair VerletMethod(P_V_Pair y_n, double x_n, Func<double, Vector3d, Vector3d> func)
+        //Verlet方法，二阶精度，保辛。单步计算，输入yn和xn，输入万有引力函数，输出下一步状态。
+        {
+            Vector3d pn = y_n.Position;
+            Vector3d vn = y_n.Velocity;
+            Vector3d v1 = vn + h / 2 * func(x_n, pn);
+            Vector3d po = pn + h * v1;
+            Vector3d vo = v1 + h / 2 * func(x_n + h, po);
+            return new P_V_Pair(po, vo);
+        }
+
+
+        //Yoshida方法：更高级别的显式保辛算法。基于可分离的哈密顿方程开发，具有计算速度快，精度高而且保辛的优点。没有缺点喵（叉腰
+        public static P_V_Pair YoshidaMethod(P_V_Pair y_n, double x_n, Func<double, Vector3d, Vector3d> F)
+        //Yoshida方法,四阶精度，保辛，单步计算，输入万有引力函数func.
+        {
+            double w0 = -Math.Pow(2, 1 / 3) / (2 - Math.Pow(2, 1 / 3));
+            double w1 = 1 / (2 - Math.Pow(2, 1 / 3));
+            Vector3d p = y_n.Position;
+            Vector3d v = y_n.Velocity;
+            double t = x_n;
+
+            double[] dt = new double[] { w1 * h, w0 * h, w1 * h };
+
+            v += dt[0] * F(t, p) / 2;
+            p += v * dt[0];
+            t += dt[0];
+            v += dt[0] * F(t, p) / 2;
+
+            v += dt[1] * F(t, p) / 2;
+            p += v * dt[1];
+            t += dt[1];
+            v += dt[1] * F(t, p) / 2;
+
+            v += dt[2] * F(t, p) / 2;
+            p += v * dt[2];
+            t += dt[2];
+            v += dt[2] * F(t, p) / 2;
+
+            return new P_V_Pair(p, v);
+        }
+
+
+        //杂项
         public static readonly int n = 10;//牛顿法的迭代次数
         public static List<P_V_Pair> NewtonIteration(Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction, List<P_V_Pair> startPosition)
         //牛顿迭代法求函数零点，输入函数为目标函数的雅可比逆与函数的乘积矢量（即在迭代时会用到的J^-1 F），输入起始位置，输出(近似的)零点
