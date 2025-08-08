@@ -204,13 +204,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
         {
+            Debug.Log("TL0SR2 MBG Orbit -- Change Time Mode");
             double NewMultiplier = e.CurrentMode.TimeMultiplier;
             if (NewMultiplier > 0)
             {
-                int n = MBG_PVList.Count - 1;
+                int n = GetPVNFromTime(CurrentTime,out _,out _);
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
                 if (e.EnteredWarpMode)
                 {
+                Debug.Log("TL0SR2 MBG Orbit -- Enter Time Mode");
                     MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
                 ForceReCalculation();
