@@ -44,6 +44,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             double CurrentTimeMultiplier = Multiplier;
             int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
             PVOut = new List<P_V_Pair> { };
+            Debug.Log($"TL0SR2 MBG Math -- Start NumericalIntegration Total Step: {CaculateStep}   elapsedTime:{elapsedTime}  dt: {_calculationStepTime}");
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(PVPair);

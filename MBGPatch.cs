@@ -287,7 +287,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             catch (Exception ex)
             {
-                Debug.LogError($"ApplyTimeWarpForce 补丁错误：{ex.Message}");
+                Debug.LogError($"ApplyTimeWarpForce 补丁错误发现错误 ");
+                Debug.LogException(ex);
                 return true; // 发生错误时运行原方法
             }
         }

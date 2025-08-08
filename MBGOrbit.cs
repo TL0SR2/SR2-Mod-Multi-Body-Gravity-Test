@@ -17,7 +17,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static IReadOnlyList<IPlanetData> planetList { get; set; }
         public MBGOrbit(CraftNode craftNode, double startTime, Vector3d startPosition, Vector3d startVelocity)
         {
-            SetMBGOrbit(craftNode, this);
             this._startTime = startTime;
             this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
             this.TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
@@ -30,8 +29,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             catch (Exception ex)
             {
-                Debug.LogError($"MBGOrbit.MBGOrbit -- {ex.Message}");
+                Debug.LogError($"MBGOrbit.MBGOrbit -- Find Exception during Init");
+                Debug.LogException(ex);
             }
+            SetMBGOrbit(craftNode, this);
         }
 
         public void FindPlanetInformation()
@@ -47,12 +48,20 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
         {
-            int n = GetPVNFromTime(startTime, out double Multiplier, out double NTime);
-            //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
-            MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime, Multiplier, out List<P_V_Pair> PVList);
-            UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
-            EndTime = NTime + elapsedTime;
-            //接下来应该在此处执行激活重绘轨道线的操作
+            try
+            {
+                int n = GetPVNFromTime(startTime, out double Multiplier, out double NTime);
+                //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
+                MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
+                UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
+                EndTime = NTime + elapsedTime * Multiplier;
+                //接下来应该在此处执行激活重绘轨道线的操作
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBG_Numerical_Calculation -- Catch Exception");
+                Debug.LogException(e);
+            }
         }
 
         public void ForceReCalculation()
@@ -61,9 +70,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public P_V_Pair GetPVPairFromTime(double time)
         {
-            int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
-            //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
-            return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
+            try
+            {
+                int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
+                //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
+                return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- GetPVPairFromTime -- Catch Exception");
+                Debug.LogException(e);
+                return new P_V_Pair();
+            }
         }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
