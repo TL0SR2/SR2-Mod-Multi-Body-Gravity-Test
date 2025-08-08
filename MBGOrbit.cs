@@ -202,7 +202,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int GetPVNFromTime(double time, out double Multiplier, out double NTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】的PV列表对应序号n值,并输出这个n对应的时间加速倍率和n值对应的时间。
         {
-            if (time <= EndTime && time >= _startTime)
+            if (time >= _startTime)
             {
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
                 int AfterN = (int)Math.Floor((time - changeTime) / (Multiplier * _listAccuracyTime));//这个值表示自从时间变化之后到所给时间时经过了多少项
@@ -218,25 +218,23 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int GetListTLPFromTime(double time, out double Multiplier,out double changeTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】一个时间加速变化节点的PV列表对应序号n值,并输出在这个n之后对应的时间加速倍率和时间变化时的对应时间。
         {
-            if (time <= EndTime)
+            for (int i = TLPList.Count - 1; i >= 0; i--)
             {
-                for (int i = TLPList.Count - 1; i >= 0; i--)
+                MBGOrbit_Time_ListNPair pair = TLPList[i];
+                if (pair.Time < time)
                 {
-                    MBGOrbit_Time_ListNPair pair = TLPList[i];
-                    if (pair.Time < time)
-                    {
-                        Multiplier = TLPList[i + 1].TimeMultiplier;
-                        changeTime = TLPList[i + 1].Time;
-                        return TLPList[i + 1].StartN;
-                    }
-                }
-                if (time >= _startTime)
-                {
-                    Multiplier = 1;
-                    changeTime = _startTime;
-                    return 0;
+                    Multiplier = TLPList[i + 1].TimeMultiplier;
+                    changeTime = TLPList[i + 1].Time;
+                    return TLPList[i + 1].StartN;
                 }
             }
+            if (time >= _startTime)
+            {
+                Multiplier = 1;
+                changeTime = _startTime;
+                return 0;
+            }
+            
             Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetListTLPFromTime -- Time Out Of Range");
             Multiplier = 1;
             changeTime = _startTime;
