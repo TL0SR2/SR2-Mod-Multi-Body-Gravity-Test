@@ -191,6 +191,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 int n = MBG_PVList.Count - 1;
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
+                if (e.EnteredWarpMode)
+                {
+                    MBG_PVList[n] = GetCraftStateAtCurrentTime();
+                }
                 ForceReCalculation();
             }
         }
@@ -237,6 +241,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Multiplier = 1;
             changeTime = _startTime;
             return 0;
+        }
+
+        public P_V_Pair GetCraftStateAtCurrentTime()
+        {
+            var craft = CurrentCraft;
+            return new P_V_Pair(craft.Position, craft.Velocity);
         }
         public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
 
