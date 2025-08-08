@@ -37,17 +37,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(P_V_Pair startPV, double startTime, double elapsedTime, out List<P_V_Pair> PVOut)
+        public static void NumericalIntegration(P_V_Pair startPV, double startTime, double elapsedTime, double Multiplier, out List<P_V_Pair> PVOut)
         {
             P_V_Pair PVPair = startPV;
             double time = startTime;
-            int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
+            double realStepTime = _calculationStepTime * Multiplier;
+            int CaculateStep = (int)Math.Floor(elapsedTime / realStepTime);
             PVOut = new List<P_V_Pair> { };
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(PVPair);
                 PVPair = MBGMath_CaculationMethod.ClassicRK4Method(PVPair, time, RKFunc);
-                time += _calculationStepTime;
+                time += realStepTime;
             }
 
         }

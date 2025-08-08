@@ -64,17 +64,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 CraftNode craftNode = _craftScriptRef(__instance).CraftNode as CraftNode;
                 //定期对mbgorbit执行重新计算的方法，以避免出现PVList为空值的情况
                 MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(craftNode);
-                    if (mbgOrbit == null)
-                    {
-                        Debug.LogError($"MBGOrbit for CraftNode {craftNode.NodeId} is null");
-                        mbgOrbit = new MBGOrbit(craftNode, craftNode.FlightState.Time, craftNode.SolarPosition, craftNode.SolarVelocity);
-                        //return true;
-                    }
+                if (mbgOrbit == null)
+                {
+                    Debug.LogError($"MBGOrbit for CraftNode {craftNode.NodeId} is null");
+                    mbgOrbit = new MBGOrbit(craftNode, craftNode.FlightState.Time, craftNode.SolarPosition, craftNode.SolarVelocity);
+                    //return true;
+                }
 
-                    if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
-                    {
-                        mbgOrbit.ForceReCalculation();
-                    }
+                if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
+                {
+                    mbgOrbit.ForceReCalculation();
+                }
                 double deltaTime = __instance.TimeDelta;
                 try
                 {
@@ -450,4 +450,28 @@ namespace Assets.Scripts.Flight.Sim.MBG
             MBGOrbit.RemoveMBGOrbit(__instance);
         }
     }
+
+    /*
+    [HarmonyPatch]
+    public class MBGPatch_SetModeImmediate
+    {
+        [HarmonyTargetMethod]
+        static MethodBase TargetMethod()
+        {
+            var craftNodeType = AccessTools.TypeByName("Assets.Scripts.Flight.TimeManager");
+            var method = AccessTools.Method(craftNodeType, "SetModeImmediate");
+            return method;
+        }
+
+
+        static void Prefix(TimeManager __instance, int modeIndex, bool forceChange)
+        {
+            FieldInfo modeIndexField = AccessTools.Field(typeof(TimeManager), "_modeIndex");
+            if (forceChange || (int)modeIndexField.GetValue(__instance) != modeIndex || __instance.CurrentMode == null)
+            {
+                __instance.TimeMultiplierModeChanging += e => MBGOrbit.ChangeTimeStatic(e);
+            }
+        }
+    }
+    */
 }

@@ -6,12 +6,13 @@ using ModApi.Flight.Sim;
 using Assets.Scripts.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
+using ModApi.Flight;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
     public class MBGOrbit
     {
-
+        //public static event EventHandler<double> ChangeTimeEvent;
         public static IPlanetNode SunNode { get; set; }
         public static IReadOnlyList<IPlanetData> planetList { get; set; }
         public MBGOrbit(CraftNode craftNode, double startTime, Vector3d startPosition, Vector3d startVelocity)
@@ -19,6 +20,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             SetMBGOrbit(craftNode, this);
             this._startTime = startTime;
             this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
+            this.TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
+            Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += (e) => this.ChangeTimeActivate(e);
             try
             {
                 FindPlanetInformation();
@@ -44,11 +47,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public void MBG_Numerical_Calculation(double startTime, double elapsedTime)
         {
-            int n = (int)Math.Floor((startTime - _startTime) / _listAccuracyTime);
+            int n = GetPVNFromTime(startTime, out double Multiplier, out double NTime);
             //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
-            MBGMath.NumericalIntegration(MBG_PVList[n], n * _listAccuracyTime + _startTime, elapsedTime - elapsedTime % _listAccuracyTime, out List<P_V_Pair> PVList);
+            MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime, Multiplier, out List<P_V_Pair> PVList);
             UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
-            EndTime = startTime + elapsedTime;
+            EndTime = NTime + elapsedTime;
             //接下来应该在此处执行激活重绘轨道线的操作
         }
 
@@ -58,17 +61,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public P_V_Pair GetPVPairFromTime(double time)
         {
-            double durationTime = time - _startTime;
-            int n = (int)Math.Floor(durationTime / _listAccuracyTime);
-            if (n < 0 || n > (MBG_PVList.Count - 1))
-            {
-                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVPairFromTime -- Time Out Of Range");
-                return P_V_Pair.Zero;
-            }
-            double Time1 = _startTime + n * _listAccuracyTime;
-            double Time2 = _startTime + (n+1) * _listAccuracyTime;
+            int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
             //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
-            return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], Time1, Time2, time);
+            return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
         }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
@@ -188,7 +183,64 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
             }
         }
+
+        public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
+        {
+            double NewMultiplier = e.CurrentMode.TimeMultiplier;
+            if (NewMultiplier > 0)
+            {
+                int n = MBG_PVList.Count - 1;
+                TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
+                ForceReCalculation();
+            }
+        }
+
+        public int GetPVNFromTime(double time, out double Multiplier, out double NTime)
+        //这个方法输入时间，返回这个时刻【之前】的【最后】的PV列表对应序号n值,并输出这个n对应的时间加速倍率和n值对应的时间。
+        {
+            if (time <= EndTime && time >= _startTime)
+            {
+                int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
+                int AfterN = (int)Math.Floor((time - changeTime) / (Multiplier * _listAccuracyTime));//这个值表示自从时间变化之后到所给时间时经过了多少项
+                NTime = changeTime + AfterN * Multiplier * _listAccuracyTime;
+                return ChangeN + AfterN;
+            }
+            Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
+            Multiplier = 1;
+            NTime = _startTime;
+            return 0;
+        }
+
+        public int GetListTLPFromTime(double time, out double Multiplier,out double changeTime)
+        //这个方法输入时间，返回这个时刻【之前】的【最后】一个时间加速变化节点的PV列表对应序号n值,并输出在这个n之后对应的时间加速倍率和时间变化时的对应时间。
+        {
+            if (time <= EndTime)
+            {
+                for (int i = TLPList.Count - 1; i >= 0; i--)
+                {
+                    MBGOrbit_Time_ListNPair pair = TLPList[i];
+                    if (pair.Time < time)
+                    {
+                        Multiplier = TLPList[i + 1].TimeMultiplier;
+                        changeTime = TLPList[i + 1].Time;
+                        return TLPList[i + 1].StartN;
+                    }
+                }
+                if (time >= _startTime)
+                {
+                    Multiplier = 1;
+                    changeTime = _startTime;
+                    return 0;
+                }
+            }
+            Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetListTLPFromTime -- Time Out Of Range");
+            Multiplier = 1;
+            changeTime = _startTime;
+            return 0;
+        }
         public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
+
+        public List<MBGOrbit_Time_ListNPair> TLPList = new List<MBGOrbit_Time_ListNPair> { };
 
         public List<MBGOrbitSpecialPoint> SpecialPointList = new List<MBGOrbitSpecialPoint> { };
 
@@ -228,6 +280,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             get => Game.Instance.FlightScene.FlightState.Time;
             //get => Game.Instance.GameState.GetCurrentTime();
+        }
+    }
+
+    public struct MBGOrbit_Time_ListNPair
+    //这是一个用来描述在时间加速变更的时候保存下相关数据的类。Time描述时间加速【变更】的时间，TimeMultiplier记录变更【后】时间加速的加速倍率，StartN描述在变更时间加速【前】的【最后】一个节点的序号N
+    {
+        public double Time;
+        public double TimeMultiplier;
+        public int StartN;
+
+        public MBGOrbit_Time_ListNPair(double time, double Multiplier, int n)
+        {
+            this.Time = time;
+            this.TimeMultiplier = Multiplier;
+            this.StartN = n;
         }
     }
 
