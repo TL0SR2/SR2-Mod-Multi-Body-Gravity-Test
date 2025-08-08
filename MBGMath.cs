@@ -41,7 +41,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             P_V_Pair PVPair = startPV;
             double time = startTime;
-            double CurrentTimeMultiplier = Multiplier;
+            CurrentTimeMultiplier = Multiplier;
             int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
             PVOut = new List<P_V_Pair> { };
             Debug.Log($"TL0SR2 MBG Math -- Start NumericalIntegration Total Step: {CaculateStep}   elapsedTime:{elapsedTime}  dt: {_calculationStepTime}");
@@ -65,7 +65,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair();
         };
 
-        private static int CurrentTimeMultiplier = 1;
+        private static double CurrentTimeMultiplier = 1;
 
         public static double _CalculationRealStep { get; private set; } = 0.01;
 
