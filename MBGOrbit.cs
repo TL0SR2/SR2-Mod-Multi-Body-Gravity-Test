@@ -243,20 +243,20 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                if (TLPList.Last().Time < time)
+                /*if (TLPList.Last().Time <= time)
                 {
                     Multiplier = TLPList.Last().TimeMultiplier;
                     changeTime = TLPList.Last().Time;
                     return TLPList.Last().StartN;
-                }
-                for (int i = TLPList.Count - 2; i >= 0; i--)
+                }*/
+                for (int i = TLPList.Count - 1; i >= 0; i--)
                 {
                     MBGOrbit_Time_ListNPair pair = TLPList[i];
-                    if (pair.Time < time)
+                    if (pair.Time <= time)
                     {
-                        Multiplier = TLPList[i + 1].TimeMultiplier;
-                        changeTime = TLPList[i + 1].Time;
-                        return TLPList[i + 1].StartN;
+                        Multiplier = TLPList[i].TimeMultiplier;
+                        changeTime = TLPList[i].Time;
+                        return TLPList[i].StartN;
                     }
                 }
                 if (time >= _startTime)
