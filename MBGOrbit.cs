@@ -227,7 +227,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
                 int AfterN = (int)Math.Floor((time - changeTime) / (Multiplier * _listAccuracyTime));//这个值表示自从时间变化之后到所给时间时经过了多少项
                 NTime = changeTime + AfterN * Multiplier * _listAccuracyTime;
-                return ChangeN + AfterN;
+                return ChangeN + AfterN - 1;
             }
             Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
             Multiplier = 1;
