@@ -25,7 +25,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 FindPlanetInformation();
                 ForceReCalculation();
-                Debug.Log($"MBGOrbit.MBGOrbit -- Initialized successfully but ForceReCalculation not called");
+                Debug.Log($"MBGOrbit.MBGOrbit -- Initialized successfully");
             }
             catch (Exception ex)
             {
@@ -107,6 +107,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (craftNodeOrbitMap.ContainsKey(craftNode))
             {
                 craftNodeOrbitMap.Remove(craftNode);
+
+                Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode}");
             }
 
         }
