@@ -212,7 +212,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
                 if (e.EnteredWarpMode)
                 {
-                Debug.Log("TL0SR2 MBG Orbit -- Enter Time Mode");
+                Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
                     MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
                 ForceReCalculation();
@@ -238,27 +238,45 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int GetListTLPFromTime(double time, out double Multiplier,out double changeTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】一个时间加速变化节点的PV列表对应序号n值,并输出在这个n之后对应的时间加速倍率和时间变化时的对应时间。
         {
-            for (int i = TLPList.Count - 1; i >= 0; i--)
+            try
             {
-                MBGOrbit_Time_ListNPair pair = TLPList[i];
-                if (pair.Time < time)
+                if (TLPList.Last().Time < time)
                 {
-                    Multiplier = TLPList[i + 1].TimeMultiplier;
-                    changeTime = TLPList[i + 1].Time;
-                    return TLPList[i + 1].StartN;
+                    Multiplier = TLPList.Last().TimeMultiplier;
+                    changeTime = TLPList.Last().Time;
+                    return TLPList.Last().StartN;
                 }
-            }
-            if (time >= _startTime)
-            {
+                for (int i = TLPList.Count - 2; i >= 0; i--)
+                {
+                    MBGOrbit_Time_ListNPair pair = TLPList[i];
+                    if (pair.Time < time)
+                    {
+                        Multiplier = TLPList[i + 1].TimeMultiplier;
+                        changeTime = TLPList[i + 1].Time;
+                        return TLPList[i + 1].StartN;
+                    }
+                }
+                if (time >= _startTime)
+                {
+                    Multiplier = 1;
+                    changeTime = _startTime;
+                    return 0;
+                }
+
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetListTLPFromTime -- Time Out Of Range");
                 Multiplier = 1;
                 changeTime = _startTime;
                 return 0;
             }
-            
-            Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetListTLPFromTime -- Time Out Of Range");
-            Multiplier = 1;
-            changeTime = _startTime;
-            return 0;
+            catch (Exception e)
+            {
+                Debug.LogError("TL0SR2 MBG Orbit Log Error -- Catch Exception");
+                Debug.LogException(e);
+                Debug.LogError($"TL0SR2 MBG Orbit Log Error -- Related Detail: time {time}  ");
+                Multiplier = 1;
+                changeTime = _startTime;
+                return 0;
+            }
         }
 
         public P_V_Pair GetCraftStateAtCurrentTime()
