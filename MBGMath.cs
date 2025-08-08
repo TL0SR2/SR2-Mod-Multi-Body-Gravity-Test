@@ -41,21 +41,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             P_V_Pair PVPair = startPV;
             double time = startTime;
-            double realStepTime = _calculationStepTime * Multiplier;
-            int CaculateStep = (int)Math.Floor(elapsedTime / realStepTime);
+            double CurrentTimeMultiplier = Multiplier;
+            int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
             PVOut = new List<P_V_Pair> { };
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(PVPair);
                 PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, GravityFunc);
-                time += realStepTime;
+                time += _calculationStepTime;
             }
 
         }
 
         public static void SetMBGCalculationStep(double value)
         {
-            _calculationStepTime = value;
+            _CalculationRealStep = value;
         }
         
         public static Func<double, P_V_Pair, P_V_Pair> TestFunc = (time, input_P_V) =>
@@ -64,7 +64,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair();
         };
 
-        public static double _calculationStepTime { get; private set; } = 0.1;
+        private static int CurrentTimeMultiplier = 1;
+
+        public static double _CalculationRealStep { get; private set; } = 0.01;
+
+        public static double _calculationStepTime
+        {
+            get
+            {
+                return _CalculationRealStep * CurrentTimeMultiplier;
+            }
+        }
 
         public static Func<double, P_V_Pair, P_V_Pair> RKFunc = (time, input_P_V) =>
         //给出显式RK总的数值模拟迭代函数

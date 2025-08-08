@@ -279,7 +279,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             get
             {
-                return MBGMath._calculationStepTime;
+                return MBGMath._CalculationRealStep;
             }
         }
         private static double _defaultDurationTime = 150;
