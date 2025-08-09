@@ -21,6 +21,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
             this.TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
+            CurrentCraft = craftNode;
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += (e) => this.ChangeTimeActivate(e);
             try
             {
@@ -115,6 +116,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode}");
             }
 
+        }
+
+        public static CraftNode GetCraft(MBGOrbit orbit)
+        {
+            return craftNodeOrbitMap.FirstOrDefault(q => q.Value == orbit).Key;
         }
         public static Dictionary<double, Vector3d> GetPlanetsPositionAtTime(double time)
         {
@@ -218,8 +224,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
                 if (e.EnteredWarpMode)
                 {
-                Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
-                   // MBG_PVList[n] = GetCraftStateAtCurrentTime();
+                    Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
+                    MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
                 ForceReCalculation();
             }
@@ -288,7 +294,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public P_V_Pair GetCraftStateAtCurrentTime()
         {
             var craft = CurrentCraft;
-            return new P_V_Pair(craft.Position, craft.Velocity);
+            return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime),craft.GetSolarVelocityAtTime(CurrentTime));
         }
         public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
 
@@ -298,13 +304,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
 
-        public CraftNode CurrentCraft
-        {
-            get
-            {
-                return craftNodeOrbitMap.FirstOrDefault(q => q.Value == this).Key;
-            }
-        }
+        public CraftNode CurrentCraft;
 
         private readonly double _startTime;
         public double EndTime { get; private set; }
