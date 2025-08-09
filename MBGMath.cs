@@ -820,9 +820,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         //Yoshida方法：更高级别的显式保辛算法。基于可分离的哈密顿方程开发，具有计算速度快，精度高而且保辛的优点。没有缺点喵（叉腰
 
-        public static readonly double w0 = -Math.Pow(2, 1 / 3) * h / (2 - Math.Pow(2, 1 / 3));
-        public static readonly double w1 = h / (2 - Math.Pow(2, 1 / 3));
-        public static readonly double w2 = h * (1 - Math.Pow(2, 1 / 3)) / (2 * (2 - Math.Pow(2, 1 / 3)));
+        public static double w0 = -Math.Pow(2, 1 / 3) * h / (2 - Math.Pow(2, 1 / 3));
+        public static double w1 = h / (2 - Math.Pow(2, 1 / 3));
+        public static double w2 = h * (1 - Math.Pow(2, 1 / 3)) / (2 * (2 - Math.Pow(2, 1 / 3)));
         public static P_V_Pair YoshidaMethod(P_V_Pair y_n, double x_n, Func<double, Vector3d, Vector3d> F)
         //Yoshida方法,四阶精度，保辛，单步计算，输入万有引力函数func.
         {
