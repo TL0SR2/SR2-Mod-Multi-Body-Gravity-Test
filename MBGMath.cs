@@ -67,15 +67,22 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static double CurrentTimeMultiplier = 1;
 
-        public static double _CalculationRealStep { get; private set; } = 2;
+        public static double _CalculationRealStep { get; private set; } = 0.01;
 
         public static double _calculationStepTime
         {
             get
             {
-                var T = _CalculationRealStep * CurrentTimeMultiplier;
-                return T > 2500 ? 2500 : T;
+                return GetStepTime(CurrentTimeMultiplier);
             }
+        }
+
+        public static double GetStepTime(double Multiplier)
+        {
+            var T = _CalculationRealStep * Multiplier;
+            T = T < 2 ? 2 : T;
+            T = T > 10000 ? 10000 : T;
+            return T;
         }
 
         public static Func<double, P_V_Pair, P_V_Pair> RKFunc = (time, input_P_V) =>

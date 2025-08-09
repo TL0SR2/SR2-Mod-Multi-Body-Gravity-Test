@@ -77,7 +77,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
-                return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
+                return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + MBGMath.GetStepTime(Multiplier), time);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}  time {time}  NTime {NTime}  PVCount {MBG_PVList.Count}  Out {Output}   nPV {MBG_PVList[n]}  n+1PV {MBG_PVList[n + 1]}  IntTime {NTime + _listAccuracyTime * Multiplier}");
                 //return Output;
             }
@@ -245,8 +245,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (time >= _startTime)
             {
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
-                int AfterN = (int)Math.Floor((time - changeTime) / (Multiplier * _listAccuracyTime));//这个值表示自从时间变化之后到所给时间时经过了多少项
-                NTime = changeTime + AfterN * Multiplier * _listAccuracyTime;
+                int AfterN = (int)Math.Floor((time - changeTime) / MBGMath.GetStepTime(Multiplier));//这个值表示自从时间变化之后到所给时间时经过了多少项
+                NTime = changeTime + AfterN * MBGMath.GetStepTime(Multiplier);
                 return ChangeN + AfterN;
             }
             Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
@@ -325,13 +325,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
             get
             {
                 return Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier;
-            }
-        }
-        private static double _listAccuracyTime
-        {
-            get
-            {
-                return MBGMath._CalculationRealStep;
             }
         }
         private static double _defaultDurationTime = 60;
