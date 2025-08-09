@@ -334,7 +334,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return MBGMath._CalculationRealStep;
             }
         }
-        private static double _defaultDurationTime = 150;
+        private static double _defaultDurationTime = 60;
 
         public static double CurrentTime
         {
