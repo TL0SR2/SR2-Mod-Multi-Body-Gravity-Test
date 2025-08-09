@@ -22,7 +22,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this.TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
-            Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += (e) => this.ChangeTimeActivate(e);
+            Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += e => this.ChangeTimeActivate(e);
             try
             {
                 FindPlanetInformation();
@@ -77,9 +77,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
-                var Output = MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}  time {time}  NTime {NTime}  PVCount {MBG_PVList.Count}  Out {Output}   nPV {MBG_PVList[n]}  n+1PV {MBG_PVList[n + 1]}  IntTime {NTime + _listAccuracyTime * Multiplier}");
-                return Output;
+                return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
+                //Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}  time {time}  NTime {NTime}  PVCount {MBG_PVList.Count}  Out {Output}   nPV {MBG_PVList[n]}  n+1PV {MBG_PVList[n + 1]}  IntTime {NTime + _listAccuracyTime * Multiplier}");
+                //return Output;
             }
             catch (Exception e)
             {
@@ -111,9 +111,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (craftNodeOrbitMap.ContainsKey(craftNode))
             {
-                craftNodeOrbitMap.Remove(craftNode);
+                try
+                {
+                    var Orbit = GetMBGOrbit(craftNode);
+                    Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging -= e => Orbit.ChangeTimeActivate(e);
+                }
+                finally
+                {
+                    craftNodeOrbitMap.Remove(craftNode);
 
-                Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode}");
+                    Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode}");
+                }
             }
 
         }
