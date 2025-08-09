@@ -20,6 +20,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._startTime = startTime;
             this.MBG_PVList.Add(new P_V_Pair(startPosition, startVelocity));
             this.TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
+            SetMBGOrbit(craftNode, this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += (e) => this.ChangeTimeActivate(e);
             try
             {
@@ -32,7 +33,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogError($"MBGOrbit.MBGOrbit -- Find Exception during Init");
                 Debug.LogException(ex);
             }
-            SetMBGOrbit(craftNode, this);
         }
 
         public void FindPlanetInformation()
@@ -55,6 +55,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
                 UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
                 EndTime = NTime + elapsedTime * Multiplier;
+                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
                 //接下来应该在此处执行激活重绘轨道线的操作
             }
             catch (Exception e)
