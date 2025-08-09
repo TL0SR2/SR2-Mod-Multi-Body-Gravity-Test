@@ -982,6 +982,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return $"({px},{py},{pz},{vx},{vy},{vz})";
+        }
         
         public readonly double SqrMagnitude
         {
