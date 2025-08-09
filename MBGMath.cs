@@ -67,7 +67,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static double CurrentTimeMultiplier = 1;
 
-        public static double _CalculationRealStep { get; private set; } = 2.5;
+        public static double _CalculationRealStep { get; private set; } = 2;
 
         public static double _calculationStepTime
         {

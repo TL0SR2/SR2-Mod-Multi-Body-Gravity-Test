@@ -318,7 +318,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public double EndTime { get; private set; }
         public static readonly double GravityConst = 6.674E-11;
 
-        public static double ForceReCalculateBeforeEnd = 1;
+        public static double ForceReCalculateBeforeEnd = 5;
 
         public static double TimeMultiplier
         {
