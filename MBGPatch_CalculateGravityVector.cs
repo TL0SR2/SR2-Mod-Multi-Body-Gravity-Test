@@ -39,7 +39,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 var fields = typeof(CraftFlightData).GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
                 {
-                    Debug.Log($"Field: {field.Name}, Type: {field.FieldType}");
+                    // Debug.Log($"Field: {field.Name}, Type: {field.FieldType}");
                 }
                 FindFields = false;
             }
@@ -49,7 +49,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(craftNode);
             if (mbgOrbit == null)
             {
-                Debug.LogError($"MBGOrbit for CraftNode {craftNode.NodeId} is null");
+                // Debug.LogError($"MBGOrbit for CraftNode {craftNode.NodeId} is null");
                 mbgOrbit = new MBGOrbit(craftNode, craftNode.FlightState.Time, craftNode.SolarPosition, craftNode.SolarVelocity);
                 //return true;
             }
@@ -62,16 +62,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
 
             Vector3d gravityFrame = new Vector3d(0, 0, 0);
-            int n = 20;
-            List<Vector3d> gravityList = new List<Vector3d>(n);
-            for (int i = 0; i < n; i++)
+            int n = 100;
+            List<Vector3d> gravityList = new List<Vector3d>(n + 1);
+            for (int i = 0; i <= n; i++)
             {
                 gravityList.Add(new Vector3d(0, 0, 0));
             }
             int index = 0;
             if (!CraftFlightData2GravityFrameList.TryGetValue(__instance, out var tuple))
             {
-                Debug.Log("" + n + "" + gravityList.Count);
+                // Debug.Log("" + n + "" + gravityList.Count);
                 CraftFlightData2GravityFrameList.Add(__instance, (gravityList, index));
                 // Debug.Log($"Initialized GravityFrameList count: {CraftFlightData2GravityFrameList[__instance].Item1.Count}");
             }
@@ -83,12 +83,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
 
 
-            if (index >= n || !(gravityList[index].magnitude > 0))
+            if (index > n || !(gravityList[index].magnitude > 0))
             {
                 double frameDeltaTime = __instance.TimeDelta;
                 P_V_Pair PVPair = new P_V_Pair(craftNode.SolarPosition, craftNode.SolarVelocity);
                 double time = craftNode.Orbit.Time;
-                int CaculateStepCount = 20;
+                int CaculateStepCount = 100;
                 double deltaTime = n * frameDeltaTime / CaculateStepCount;
                 for (int i = 0; i < CaculateStepCount; i++)
                 {
@@ -115,6 +115,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     n, frameDeltaTime);
                 index = 0;
                 // P_V_Pair targetPV = MBGOrbit.GetMBGOrbit(craftNode).GetPVPairFromTime(2 * frameDeltaTime + craftNode.Orbit.Time);
+
                 // Debug.Log($"CraftNode: {craftNode.NodeId} solarPosition: {craftNode.SolarPosition} solarVelocity: {craftNode.SolarVelocity}");
                 // Debug.Log($"DPV: {targetPV.Position - craftNode.SolarPosition} {targetPV.Velocity - craftNode.SolarVelocity}");
             }
@@ -125,7 +126,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 CraftFlightData2GravityFrameList[__instance] = (gravityList, index + 1);
                 // Debug.Log("GravityFrame: " + gravityFrame);
             }
-            Debug.Log($"GravitylistCount: {gravityList.Count}, Index: {index}");
+            // Debug.Log($"GravitylistCount: {gravityList.Count}, Index: {index}");
 
             if (gravityFrame.x == double.NaN || gravityFrame.x == double.PositiveInfinity || gravityFrame.x == 0)
             {
@@ -267,7 +268,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             // --- 步骤 1: 计算 k1 和 k2 所需的中间量 ---
             double A = 0.0, B = 0.0, E = 0.0, F = 0.0;
-            for (int n = 0; n < N; n++)
+            for (int n = 0; n <= N; n++)
             {
                 double x = (double)n / N;
                 double f_val = F_func(x);
@@ -283,7 +284,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             double td_sq = td * td;
             Vector3d sumTermForD = Vector3d.zero;
             Vector3d delta_g = endGravityAccel - startGravityAccel;
-            for (int n = 0; n < N; n++)
+            for (int n = 0; n <= N; n++)
             {
                 double x = (double)n / N;
                 sumTermForD += (startGravityAccel + delta_g * x) * (N - n);
@@ -307,7 +308,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             // --- 步骤 3: 生成并返回修正后的加速度序列 ---
             var correctedAccelerations = new List<Vector3d>(N);
 
-            for (int n = 0; n < N; n++)
+            for (int n = 0; n <= N; n++)
             {
                 double x = (double)n / N;
                 double f_val = F_func(x);
