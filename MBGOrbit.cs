@@ -77,7 +77,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
                 var Output = MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + _listAccuracyTime * Multiplier, time);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}  time {time}  NTime {NTime}  PVCount {MBG_PVList.Count}  Out {Output}");
+                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}  time {time}  NTime {NTime}  PVCount {MBG_PVList.Count}  Out {Output}   nPV {MBG_PVList[n]}  n+1PV {MBG_PVList[n + 1]}  IntTime {NTime + _listAccuracyTime * Multiplier}");
                 return Output;
             }
             catch (Exception e)

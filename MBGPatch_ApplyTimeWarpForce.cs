@@ -32,7 +32,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 1");
                 // 确保 SunNode 和 planetList 已初始化
                 if (MBGOrbit.SunNode == null || MBGOrbit.planetList == null || MBGOrbit.planetList.Count == 0)
                 {
@@ -45,7 +44,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Debug.LogError("MBGOrbit.SunNode is null");
                     return true; // 跳回原方法
                 }
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 2");
 
                 Vector3d craftSolarPosition = __instance.SolarPosition;
                 double mass = (double)__instance.CraftMass;
@@ -53,7 +51,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 IReadOnlyList<IPlanetData> planetList = MBGOrbit.planetList;
                 Vector3d TotalGravity = new Vector3d(0, 0, 0);
                 IPlanetData CurrentPlanet = __instance.Parent.PlanetData;
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 3");
                 foreach (IPlanetData planetData in planetList)
                 {
                     if (planetData.Name != CurrentPlanet.Name)
@@ -64,19 +61,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         TotalGravity += GravityForce;
                     }
                 }
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 4");
 
                 var field_timeWarpForceTotal = AccessTools.Field(__instance.GetType(), "_timeWarpForceTotal");
                 var field_craftScript = AccessTools.Field(__instance.GetType(), "_craftScript");
                 var property_Heading = AccessTools.Property(__instance.GetType(), "Heading");
                 Vector3 Temp = (Vector3)field_timeWarpForceTotal.GetValue(__instance);
                 Vector3d timeWarpForceTotal = new Vector3d(Temp.x, Temp.y, Temp.z);
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 5");
 
                 timeWarpForceTotal += TotalGravity;
                 CraftScript craftScript = (CraftScript)field_craftScript.GetValue(__instance);
                 Quaterniond Heading = (Quaterniond)property_Heading.GetValue(__instance);
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 6");
 
                 if (__instance.CraftScript != null && timeWarpForceTotal.sqrMagnitude > 0f)
                 {
@@ -87,26 +81,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         mbgOrbit = new MBGOrbit(__instance, __instance.FlightState.Time, __instance.SolarPosition, __instance.SolarVelocity);
                         //return true;
                     }
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 7");
 
                     if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
                     {
                         mbgOrbit.ForceReCalculation();
                     }
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 8");
                     //此处已经替换成自己计算得到的位置信息
                     Vector3d planetSolarPosition = SunNode.FindPlanet(CurrentPlanet.Name).SolarPosition;
                     Vector3d planetSolarVelocity = SunNode.FindPlanet(CurrentPlanet.Name).SolarVelocity;
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 9");
                     P_V_Pair PlanetPVState = new P_V_Pair(planetSolarPosition, planetSolarVelocity);
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 10");
                     P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime) - PlanetPVState;
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 11");
                     Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 12");
                     Vector3d velocity = State.Velocity + vector;
                     __instance.SetStateVectorsAtDefaultTime(State.Position, velocity);
-                Debug.Log("TL0SR2 MBG Orbit Log -- ApplyTimeWarpForce -- Log 13");
                     timeWarpForceTotal = new Vector3d(0, 0, 0);
                 }
 
