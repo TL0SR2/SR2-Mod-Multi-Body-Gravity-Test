@@ -219,7 +219,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 if (e.EnteredWarpMode)
                 {
                 Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
-                    MBG_PVList[n] = GetCraftStateAtCurrentTime();
+                   // MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
                 ForceReCalculation();
             }
