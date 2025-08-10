@@ -291,7 +291,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     if (pair.Time <= time)
                     {
                         Multiplier = TLPList[i].TimeMultiplier;
-                        changeTime = TLPList[i].Time;
+                        changeTime = TLPList[i].Time + Multiplier * 0.05;
                         return TLPList[i].StartN;
                     }
                 }
