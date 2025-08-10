@@ -350,17 +350,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static double CurrentTime
         {
-            //get => Game.Instance.FlightScene.FlightState.Time;
+            get => Game.Instance.FlightScene.FlightState.Time;
             //get => Game.Instance.GameState.GetCurrentTime();
             //get => SunNode.Orbit.Time;
             //get => Game.Instance.FlightScene.TimeManager.RealTime
-            get
-            {
-                return _currentTime;
-            }
-            set => _currentTime = value;
+            //get => _currentTime;
+            //set => _currentTime = value;
         }
-        private static double _currentTime;
+        //private static double _currentTime;
     }
 
     public struct MBGOrbit_Time_ListNPair

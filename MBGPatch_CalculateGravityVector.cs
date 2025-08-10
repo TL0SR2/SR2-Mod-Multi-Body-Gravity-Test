@@ -45,7 +45,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
 
             CraftNode craftNode = _craftScriptRef(__instance).CraftNode as CraftNode;
-            MBGOrbit.CurrentTime = craftNode.Orbit.Time;
+            //MBGOrbit.CurrentTime = craftNode.Orbit.Time;
             //定期对mbgorbit执行重新计算的方法，以避免出现PVList为空值的情况
             MBGOrbit mbgOrbit = MBGOrbit.GetMBGOrbit(craftNode);
             if (mbgOrbit == null)
