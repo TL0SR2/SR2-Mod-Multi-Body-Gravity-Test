@@ -53,10 +53,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 int n = GetPVNFromTime(startTime, out double Multiplier, out double NTime);
                 //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
+                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PVList.Count}  Input PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude} Time {NTime}");
                 MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
                 UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
                 EndTime = NTime + elapsedTime * Multiplier;
-                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
+                //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
                 //接下来应该在此处执行激活重绘轨道线的操作
             }
             catch (Exception e)
@@ -78,7 +79,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
                 var Output = MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + MBGMath.GetStepTime(Multiplier), time);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PVList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude}  n+1PV PostionLength {MBG_PVList[n+1].Position.magnitude} VelocityLength {MBG_PVList[n+1].Velocity.magnitude}  Output PostionLength {Output.Position.magnitude} VelocityLength{Output.Velocity.magnitude}");
+                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PVList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude}  n+1PV PostionLength {MBG_PVList[n+1].Position.magnitude} VelocityLength {MBG_PVList[n+1].Velocity.magnitude}  Output PostionLength {Output.Position.magnitude} VelocityLength {Output.Velocity.magnitude}");
                 return Output;
             }
             catch (Exception e)
