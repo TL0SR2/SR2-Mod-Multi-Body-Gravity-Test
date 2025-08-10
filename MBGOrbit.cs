@@ -57,6 +57,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
                 UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
                 EndTime = NTime + elapsedTime * Multiplier;
+                DebugLogPVList(n, 10);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
                 //接下来应该在此处执行激活重绘轨道线的操作
             }
@@ -66,6 +67,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogException(e);
                 Debug.LogError($"TL0SR2 MBG Orbit Log Error -- MBG_Numerical_Calculation -- Detail Data  n {GetPVNFromTime(startTime, out _, out _)}  PVCount  {MBG_PVList.Count}");
             }
+        }
+
+        public void DebugLogPVList(int startFrom, int N)
+        {
+            Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log Start");
+            for (int i = 0; i < N; i++)
+            {
+                int n = startFrom + i;
+                Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Num {n} Value PostionLength {MBG_PVList[i].Position.magnitude}  VelocityLength {MBG_PVList[n].Velocity.magnitude} ");
+            }
+            Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log 'End'");
         }
 
         public void ForceReCalculation()
