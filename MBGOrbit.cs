@@ -56,7 +56,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PVList.Count}  Input PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude} Time {NTime}");
                 MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
-                UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
+                int n2;
+                if (CalculateAfterWarp)
+                {
+                    n2 = GetPVNFromTime(startTime + _warpdelay, out _, out _);
+                    CalculateAfterWarp = false;
+                }
+                else { n2 = n; }
+                UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n2);
                 EndTime = NTime + elapsedTime * Multiplier;
                 //DebugLogPVList(n, 10);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
@@ -93,7 +100,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                time -= _warpdelay;
+                //time -= _warpdelay;
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
                 return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + MBGMath.GetStepTime(Multiplier), time);
@@ -251,12 +258,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(CurrentTime, out _, out _);
                 //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
-                //_warpdelay = 0.05 * NewMultiplier;
                 if (e.EnteredWarpMode)
                 {
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
                     MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
+                _warpdelay = 0.05 * NewMultiplier;
+                CalculateAfterWarp = true;
                 ForceReCalculation();
             }
         }
@@ -369,6 +377,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             get => CurrentTime - _warpdelay;
         }
+
+        private bool CalculateAfterWarp;
     }
 
     public struct MBGOrbit_Time_ListNPair
