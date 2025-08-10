@@ -92,7 +92,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Vector3d planetSolarPosition = SunNode.FindPlanet(CurrentPlanet.Name).SolarPosition;
                     Vector3d planetSolarVelocity = SunNode.FindPlanet(CurrentPlanet.Name).SolarVelocity;
                     P_V_Pair PlanetPVState = new P_V_Pair(planetSolarPosition, planetSolarVelocity);
-                    P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime) - PlanetPVState;
+                    P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime - mbgOrbit.WarpDelay) - PlanetPVState;
                     //Debug.Log($"TL0SR2 MBG Patch Log -- ApplyTimeWarpForce -- Get Craft State Position {State.Position} Velocity {State.Velocity} Position Length {State.Position.magnitude} Velocity Length {State.Velocity.magnitude}");
                     Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
                     Vector3d velocity = State.Velocity + vector;

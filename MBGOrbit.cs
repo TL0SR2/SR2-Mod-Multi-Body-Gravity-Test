@@ -250,7 +250,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(CurrentTime, out _, out _);
                 //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
-                _warpdelay += 0.05 * NewMultiplier;
+                WarpDelay += 0.05 * NewMultiplier;
                 if (e.EnteredWarpMode)
                 {
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
@@ -265,7 +265,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (time >= _startTime)
             {
-                time -= _warpdelay;
+                //time -= _warpdelay;
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
                 int AfterN = (int)Math.Floor((time - changeTime) / MBGMath.GetStepTime(Multiplier));//这个值表示自从时间变化之后到所给时间时经过了多少项
                 NTime = changeTime + AfterN * MBGMath.GetStepTime(Multiplier);
@@ -362,7 +362,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         //private static double _currentTime;
 
-        private double _warpdelay = 0;
+        public double WarpDelay = 0;
     }
 
     public struct MBGOrbit_Time_ListNPair
