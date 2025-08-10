@@ -175,9 +175,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             return result;
         }
-        
+
         public static void TestMethod(double time)
-        {   Debug.LogWarning($"Test Method Debug Log -- SunNode  {SunNode}");
+        {
+            Debug.LogWarning($"Test Method Debug Log -- SunNode  {SunNode}");
             foreach (var planetData in planetList)
             {
                 Debug.LogWarning($"Test Method Debug Log -- PlanetData  {planetData}");
@@ -246,9 +247,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             double NewMultiplier = e.CurrentMode.TimeMultiplier;
             if (NewMultiplier > 0)
             {
-                int n = GetPVNFromTime(CurrentTime,out _,out _);
+                int n = GetPVNFromTime(CurrentTime, out _, out _);
                 //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
-                TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime + 0.0 * NewMultiplier, NewMultiplier, n));
+                TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
+                _warpdelay += 0.05 * NewMultiplier;
                 if (e.EnteredWarpMode)
                 {
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
@@ -263,6 +265,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (time >= _startTime)
             {
+                time -= _warpdelay;
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
                 int AfterN = (int)Math.Floor((time - changeTime) / MBGMath.GetStepTime(Multiplier));//这个值表示自从时间变化之后到所给时间时经过了多少项
                 NTime = changeTime + AfterN * MBGMath.GetStepTime(Multiplier);
@@ -274,7 +277,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return 0;
         }
 
-        public int GetListTLPFromTime(double time, out double Multiplier,out double changeTime)
+        public int GetListTLPFromTime(double time, out double Multiplier, out double changeTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】一个时间加速变化节点的PV列表对应序号n值,并输出在这个n之后对应的时间加速倍率和时间变化时的对应时间。
         {
             try
@@ -321,7 +324,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public P_V_Pair GetCraftStateAtCurrentTime()
         {
             var craft = CurrentCraft;
-            return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime),craft.GetSolarVelocityAtTime(CurrentTime));
+            return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime), craft.GetSolarVelocityAtTime(CurrentTime));
         }
         public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
 
@@ -358,6 +361,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             //set => _currentTime = value;
         }
         //private static double _currentTime;
+
+        private double _warpdelay = 0;
     }
 
     public struct MBGOrbit_Time_ListNPair
