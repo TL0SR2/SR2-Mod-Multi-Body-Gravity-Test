@@ -45,12 +45,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     return true; // 跳回原方法
                 }
 
+
                 Vector3d craftSolarPosition = __instance.SolarPosition;
                 double mass = (double)__instance.CraftMass;
 
                 IReadOnlyList<IPlanetData> planetList = MBGOrbit.planetList;
                 Vector3d TotalGravity = new Vector3d(0, 0, 0);
                 IPlanetData CurrentPlanet = __instance.Parent.PlanetData;
+                MBGOrbit.CurrentTime = SunNode.FindPlanet(CurrentPlanet.Name).Orbit.Time;
                 foreach (IPlanetData planetData in planetList)
                 {
                     if (planetData.Name != CurrentPlanet.Name)

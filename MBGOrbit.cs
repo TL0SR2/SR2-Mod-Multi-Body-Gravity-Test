@@ -7,6 +7,7 @@ using Assets.Scripts.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
+using Assets.Scripts.Flight.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -83,6 +84,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void ForceReCalculation()
         {
             MBG_Numerical_Calculation(CurrentTime, _defaultDurationTime);
+        }
+        public void ForceReCalculation(double startTime)
+        {
+            MBG_Numerical_Calculation(startTime, _defaultDurationTime);
         }
         public P_V_Pair GetPVPairFromTime(double time)
         {
@@ -347,8 +352,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             //get => Game.Instance.FlightScene.FlightState.Time;
             //get => Game.Instance.GameState.GetCurrentTime();
-            get => SunNode.Orbit.Time;
+            //get => SunNode.Orbit.Time;
+            //get => Game.Instance.FlightScene.TimeManager.RealTime
+            get
+            {
+                return _currentTime;
+            }
+            set => _currentTime = value;
         }
+        private static double _currentTime;
     }
 
     public struct MBGOrbit_Time_ListNPair
