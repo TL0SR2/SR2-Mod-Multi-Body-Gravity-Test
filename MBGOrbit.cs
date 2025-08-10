@@ -264,7 +264,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
                     MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
-                _warpdelay = 0.01 * NewMultiplier;
+                _warpdelay = WarpDelayK * NewMultiplier;
                 CalculateAfterWarp = true;
                 ForceReCalculation();
             }
@@ -336,6 +336,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             var craft = CurrentCraft;
             return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime), craft.GetSolarVelocityAtTime(CurrentTime));
         }
+
+        public static void SetWarpDelayK(double value)
+        {
+            WarpDelayK = value;
+        }
         public List<P_V_Pair> MBG_PVList = new List<P_V_Pair> { };
 
         public List<MBGOrbit_Time_ListNPair> TLPList = new List<MBGOrbit_Time_ListNPair> { };
@@ -380,6 +385,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
         private bool CalculateAfterWarp;
+
+        private static double WarpDelayK = 0.01;
     }
 
     public struct MBGOrbit_Time_ListNPair

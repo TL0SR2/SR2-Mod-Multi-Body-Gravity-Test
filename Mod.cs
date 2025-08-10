@@ -34,6 +34,7 @@ namespace Assets.Scripts
         protected override void OnModInitialized()
         {
             DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Math Calculation Step", value => MBGMath.SetMBGCalculationStep(value));
+            DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Warp Delay Ratio", value => MBGOrbit.SetWarpDelayK(value));
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
         }
 
