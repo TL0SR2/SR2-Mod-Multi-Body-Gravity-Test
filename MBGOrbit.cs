@@ -242,6 +242,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (NewMultiplier > 0)
             {
                 int n = GetPVNFromTime(CurrentTime,out _,out _);
+                Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
                 if (e.EnteredWarpMode)
                 {
