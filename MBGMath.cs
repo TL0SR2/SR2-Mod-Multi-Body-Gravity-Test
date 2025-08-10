@@ -830,11 +830,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static P_V_Pair YoshidaMethod(P_V_Pair y_n, double x_n, Func<double, Vector3d, Vector3d> F)
         //Yoshida方法,四阶精度，保辛，单步计算，输入万有引力函数func.
         {
-            //double w0 = -Math.Pow(2, 1 / 3) / (2 - Math.Pow(2, 1 / 3));
-            //double w1 = 1 / (2 - Math.Pow(2, 1 / 3));
-            double w0 = -Math.Pow(2, 1 / 3) * h / (2 - Math.Pow(2, 1 / 3));
-            double w1 = h / (2 - Math.Pow(2, 1 / 3));
-            double w2 = h * (1 - Math.Pow(2, 1 / 3)) / (2 * (2 - Math.Pow(2, 1 / 3)));
+            //w0 = -Math.Pow(2, 1 / 3) / (2 - Math.Pow(2, 1 / 3));
+            //w1 = 1 / (2 - Math.Pow(2, 1 / 3));
+            //w2 = (w0+w1) /2
+            double w0 = -1.7024143839193152680953756179429 * h;
+            double w1 = 1.3512071919596576340476878089715 * h;
+            double w2 = -0.1756035959798288170238439044857 * h;
             Vector3d p = y_n.Position;
             Vector3d v = y_n.Velocity;
             double t = x_n;
