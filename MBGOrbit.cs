@@ -264,7 +264,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
                     MBG_PVList[n] = GetCraftStateAtCurrentTime();
                 }
-                _warpdelay = 0.05 * NewMultiplier;
+                _warpdelay = 0.04 * NewMultiplier;
                 CalculateAfterWarp = true;
                 ForceReCalculation();
             }
