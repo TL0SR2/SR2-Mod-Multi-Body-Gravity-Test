@@ -52,18 +52,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                int n = GetPVNFromTime(startTime, out double Multiplier, out double NTime);
+                double time1 = startTime;
+                if (CalculateAfterWarp)
+                {
+                    CalculateAfterWarp = false;
+                    time1 += _warpdelay;
+                }
+
+                int n = GetPVNFromTime(time1, out double Multiplier, out double NTime);
+                //int n2 = GetPVNFromTime(startTime, out _, out _);
                 //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PVList.Count}  Input PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude} Time {NTime}");
                 MBGMath.NumericalIntegration(MBG_PVList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<P_V_Pair> PVList);
-                int n2;
-                if (CalculateAfterWarp)
-                {
-                    n2 = GetPVNFromTime(startTime + _warpdelay, out _, out _);
-                    CalculateAfterWarp = false;
-                }
-                else { n2 = n; }
-                UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n2);
+                UpdateList<P_V_Pair>(ref MBG_PVList, PVList, n);
                 EndTime = NTime + elapsedTime * Multiplier;
                 //DebugLogPVList(n, 10);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PVList.Count}");
