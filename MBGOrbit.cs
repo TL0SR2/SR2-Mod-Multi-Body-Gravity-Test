@@ -93,7 +93,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
+                int n = GetPVNFromTime(time - _warpdelay, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
                 return MBGMath.HermiteInterpolation(MBG_PVList[n], MBG_PVList[n + 1], NTime, NTime + MBGMath.GetStepTime(Multiplier), time);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PVList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PVList[n].Position.magnitude} VelocityLength {MBG_PVList[n].Velocity.magnitude}  n+1PV PostionLength {MBG_PVList[n+1].Position.magnitude} VelocityLength {MBG_PVList[n+1].Velocity.magnitude}  Output PostionLength {Output.Position.magnitude} VelocityLength {Output.Velocity.magnitude}");
@@ -250,7 +250,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(CurrentTime, out _, out _);
                 //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
-                WarpDelay += 0.05 * NewMultiplier;
+                _warpdelay += 0.05 * NewMultiplier;
                 if (e.EnteredWarpMode)
                 {
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
@@ -362,7 +362,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         //private static double _currentTime;
 
-        public double WarpDelay = 0;
+        private double _warpdelay = 0;
     }
 
     public struct MBGOrbit_Time_ListNPair
