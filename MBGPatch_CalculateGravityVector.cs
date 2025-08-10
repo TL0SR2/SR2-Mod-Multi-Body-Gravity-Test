@@ -120,7 +120,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 // Debug.Log($"DPV: {targetPV.Position - craftNode.SolarPosition} {targetPV.Velocity - craftNode.SolarVelocity}");
             }
 
-            if (!(gravityList.Count > 0) || gravityList[index].magnitude > 0)
+            if (gravityList.Count == 0)
+            {
+                gravityFrame = MBGOrbit.CalculateGravityAtTime(craftNode.SolarPosition, craftNode.Orbit.Time);
+            }
+            else if (!(gravityList.Count > 0) || gravityList[index].magnitude > 0)
             {
                 gravityFrame = gravityList[index];
                 CraftFlightData2GravityFrameList[__instance] = (gravityList, index + 1);
@@ -131,18 +135,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (gravityFrame.x == double.NaN || gravityFrame.x == double.PositiveInfinity || gravityFrame.x == 0)
             {
                 // Debug.LogError($"GravityFrame is NaN or zero for CraftNode {craftNode.NodeId}");
-                gravityFrame = MBGOrbit.CalculateGravityAtTime(craftNode.SolarPosition, craftNode.Orbit.Time);
+                return true;
             }
             else
             {
-
+                // gravityFrame = MBGOrbit.CalculateGravityAtTime(craftNode.SolarPosition, craftNode.Orbit.Time);
+                _gravityFrameRef(__instance) = ToVector3(gravityFrame);
+                GravityFrameNormalizedRef(__instance) = ToVector3(gravityFrame).normalized;
+                GravityMagnitudeRef(__instance) = (float)gravityFrame.magnitude;
+                return false;
             }
 
-            // gravityFrame = MBGOrbit.CalculateGravityAtTime(craftNode.SolarPosition, craftNode.Orbit.Time);
-            _gravityFrameRef(__instance) = ToVector3(gravityFrame);
-            GravityFrameNormalizedRef(__instance) = ToVector3(gravityFrame).normalized;
-            GravityMagnitudeRef(__instance) = (float)gravityFrame.magnitude;
-            return false;
 
         }
 
