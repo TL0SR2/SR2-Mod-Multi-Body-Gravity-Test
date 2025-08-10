@@ -77,7 +77,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = startFrom + i;
                 Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Num {n} Value PostionLength {MBG_PVList[i].Position.magnitude}  VelocityLength {MBG_PVList[n].Velocity.magnitude} ");
             }
-            Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log 'End'");
+            Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log End");
         }
 
         public void ForceReCalculation()
@@ -345,8 +345,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static double CurrentTime
         {
-            get => Game.Instance.FlightScene.FlightState.Time;
+            //get => Game.Instance.FlightScene.FlightState.Time;
             //get => Game.Instance.GameState.GetCurrentTime();
+            get => SunNode.Orbit.Time;
         }
     }
 
