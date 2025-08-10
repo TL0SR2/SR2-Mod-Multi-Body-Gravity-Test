@@ -55,7 +55,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //return true;
             }
 
-            if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier)
+            if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Math.Max(Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier,1))
             {
                 mbgOrbit.ForceReCalculation();
             }
