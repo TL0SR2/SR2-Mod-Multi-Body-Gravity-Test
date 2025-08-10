@@ -251,7 +251,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(CurrentTime, out _, out _);
                 //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime, NewMultiplier, n));
-                _warpdelay = 0.05 * NewMultiplier;
+                //_warpdelay = 0.05 * NewMultiplier;
                 if (e.EnteredWarpMode)
                 {
                     Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
