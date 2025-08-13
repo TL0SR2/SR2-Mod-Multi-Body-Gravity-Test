@@ -453,21 +453,24 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < num; i++)
                 {
                     MBGOrbitPoint point = MBGOrbitPointSet.GetPoint(i);
-                    /*
-                    if (orbitLine._indexOfPrecisePoint < 0) //&& OrbitMath.TrueAnomalyBetween(orbit2.TrueAnomaly, nuStart, point2.TrueAnomaly, true))
+                    if (point.Time >= MBGOrbit.CurrentTime - 10)
                     {
-                        drawModeReferenceInfo = MBGOrbitLine.AddOrbitLinePoint(drawModeProvider, drawModeReferenceInfo, coordinateConverter, scaledPointsCache, orbitInfo, drawMode, vectrocityLine, num2, timeSpan, flag, OrbitMath.GetPointAtTrueAnomaly(orbit2, orbit2.TrueAnomaly), num);
-                        orbitLine._indexOfPrecisePoint = i;
+                        /*
+                        if (orbitLine._indexOfPrecisePoint < 0) //&& OrbitMath.TrueAnomalyBetween(orbit2.TrueAnomaly, nuStart, point2.TrueAnomaly, true))
+                        {
+                            drawModeReferenceInfo = MBGOrbitLine.AddOrbitLinePoint(drawModeProvider, drawModeReferenceInfo, coordinateConverter, scaledPointsCache, orbitInfo, drawMode, vectrocityLine, num2, timeSpan, flag, OrbitMath.GetPointAtTrueAnomaly(orbit2, orbit2.TrueAnomaly), num);
+                            orbitLine._indexOfPrecisePoint = i;
+                        }
+                        drawModeReferenceInfo = MBGOrbitLine.AddOrbitLinePoint(drawModeProvider, drawModeReferenceInfo, coordinateConverter, scaledPointsCache, orbitInfo, drawMode, vectrocityLine, num2, timeSpan, flag, point2, num);
+                        //nuStart = point2.TrueAnomaly;
+                        */
+                        if (orbitLine._currentplanet == null)
+                        {
+                            orbitLine.ChangeReferencePlanet(MBGOrbit.SunNode);
+                        }
+                        vectrocityLine.points3.Add((Vector3)coordinateConverter.ConvertSolarToMapView(point.State.Position - orbitLine._currentplanet.GetSolarPositionAtTime(point.Time) + orbitLine._currentplanet.SolarPosition));
+                        //scaledPointsCache.Add(GetScaledCachePoint(point,coordinateConverter));
                     }
-                    drawModeReferenceInfo = MBGOrbitLine.AddOrbitLinePoint(drawModeProvider, drawModeReferenceInfo, coordinateConverter, scaledPointsCache, orbitInfo, drawMode, vectrocityLine, num2, timeSpan, flag, point2, num);
-                    //nuStart = point2.TrueAnomaly;
-                    */
-                    if (orbitLine._currentplanet == null)
-                    {
-                        orbitLine.ChangeReferencePlanet(MBGOrbit.SunNode);
-                    }
-                    vectrocityLine.points3.Add((Vector3)coordinateConverter.ConvertSolarToMapView(point.State.Position - orbitLine._currentplanet.GetSolarPositionAtTime(point.Time) + orbitLine._currentplanet.SolarPosition));
-				    //scaledPointsCache.Add(GetScaledCachePoint(point,coordinateConverter));
                 }
                 /*
                 if (flag)
