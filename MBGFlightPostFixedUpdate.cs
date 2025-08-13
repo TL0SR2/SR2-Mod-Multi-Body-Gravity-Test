@@ -31,7 +31,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public int GetInstanceID()
         {
-            return this.GetHashCode();
+            return GetHashCode();
         }
     }
 

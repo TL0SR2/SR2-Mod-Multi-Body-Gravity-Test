@@ -37,17 +37,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(P_V_Pair startPV, double startTime, double elapsedTime, double Multiplier, out List<P_V_Pair> PVOut)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, double startTime, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut)
         {
-            P_V_Pair PVPair = startPV;
+            P_V_Pair PVPair = startPoint.State;
             double time = startTime;
             CurrentTimeMultiplier = Multiplier;
             int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
-            PVOut = new List<P_V_Pair> { };
+            PVOut = new List<MBGOrbitPoint> { };
             Debug.Log($"TL0SR2 MBG Math -- Start NumericalIntegration Total Step: {CaculateStep}   elapsedTime:{elapsedTime}  dt: {_calculationStepTime}");
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
-                PVOut.Add(PVPair);
+                PVOut.Add(new MBGOrbitPoint(PVPair, time));
                 PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, GravityFunc);
                 time += _calculationStepTime;
             }
@@ -959,12 +959,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 return index switch
                 {
-                    0 => this.px,
-                    1 => this.py,
-                    2 => this.pz,
-                    3 => this.vx,
-                    4 => this.vy,
-                    5 => this.vz,
+                    0 => px,
+                    1 => py,
+                    2 => pz,
+                    3 => vx,
+                    4 => vy,
+                    5 => vz,
                     _ => throw new IndexOutOfRangeException("Invalid P_V_Pair index!"),
                 };
             }
@@ -973,22 +973,22 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 switch (index)
                 {
                     case 0:
-                        this.px = value;
+                        px = value;
                         return;
                     case 1:
-                        this.py = value;
+                        py = value;
                         return;
                     case 2:
-                        this.pz = value;
+                        pz = value;
                         return;
                     case 3:
-                        this.vx = value;
+                        vx = value;
                         return;
                     case 4:
-                        this.vy = value;
+                        vy = value;
                         return;
                     case 5:
-                        this.vz = value;
+                        vz = value;
                         return;
                     default:
                         throw new IndexOutOfRangeException("Invalid P_V_Pair index!");
