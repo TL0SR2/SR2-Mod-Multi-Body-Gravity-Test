@@ -254,28 +254,32 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
         {
-            Debug.Log("TL0SR2 MBG Orbit -- Change Time Mode");
-            double NewMultiplier = e.CurrentMode.TimeMultiplier;
-            _warpdelay = 0;//WarpDelayK * NewMultiplier;
-            if (NewMultiplier > 0)
+            if (GetCraft(this) != null)
             {
-                int n = GetPVNFromTime(CurrentTime + _warpdelay, out _, out _);
-                //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
-                TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime + _warpdelay, NewMultiplier, n));
-                if (e.EnteredWarpMode)
+                Debug.Log($"TL0SR2 MBG Orbit -- Change Time Mode -- New Time Mode {e.CurrentMode.TimeMultiplier}");
+                double NewMultiplier = e.CurrentMode.TimeMultiplier;
+                _warpdelay = 0;//WarpDelayK * NewMultiplier;
+                if (NewMultiplier > 0)
                 {
-                    P_V_Pair state = GetCraftStateAtCurrentTime();
-                    Debug.Log($"TL0SR2 MBG Orbit -- Enter Time Warp Mode -- Add New Point   N {n}");
-                    MBG_PointList[n] = new MBGOrbitPoint(state, CurrentTime);
+                    int n = GetPVNFromTime(CurrentTime + _warpdelay, out _, out _);
+                    //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
+                    TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime + _warpdelay, NewMultiplier, n));
+                    if (e.EnteredWarpMode)
+                    {
+                        P_V_Pair state = GetCraftStateAtCurrentTime();
+                        Debug.Log($"TL0SR2 MBG Orbit -- Enter Time Warp Mode -- Add New Point   N {n}");
+                        MBG_PointList[n] = new MBGOrbitPoint(state, CurrentTime);
+                    }
+                    CalculateAfterWarp = true;
+                    ForceReCalculation();
                 }
-                CalculateAfterWarp = true;
-                ForceReCalculation();
             }
         }
 
         public int GetPVNFromTime(double time, out double Multiplier, out double NTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】的PV列表对应序号n值,并输出这个n对应的时间加速倍率和n值对应的时间。
         {
+            /*
             if (time >= _startTime)
             {
                 //time -= _warpdelay;
@@ -283,6 +287,24 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int AfterN = (int)Math.Floor((time - changeTime) / MBGMath.GetStepTime(Multiplier));//这个值表示自从时间变化之后到所给时间时经过了多少项
                 NTime = changeTime + AfterN * MBGMath.GetStepTime(Multiplier);
                 return ChangeN + AfterN;
+            }
+            Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
+            Multiplier = 1;
+            NTime = _startTime;
+            return 0;
+            */
+            if(time >= _startTime)
+            {
+                for(int i = MBG_PointList.Count-2;i>=0;i--)
+                {
+                    var point = MBG_PointList[i];
+                    if (point.Time <= time)
+                    {
+                        Multiplier = (MBG_PointList[i + 1].Time - point.Time) / MBGMath._CalculationRealStep;
+                        NTime = point.Time;
+                        return i;
+                    }
+                }
             }
             Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
             Multiplier = 1;
