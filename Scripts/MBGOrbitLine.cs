@@ -455,7 +455,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < num; i++)
                 {
                     MBGOrbitPoint point = MBGOrbitPointSet.GetPoint(i);
-                    if (point.Time >= MBGOrbit.CurrentTime - 10)
+                    if (point.Time >= MBGOrbit.CurrentTime - 10 && i < 16383*2 && i % 2 == 0)
                     {
                         /*
                         if (orbitLine._indexOfPrecisePoint < 0) //&& OrbitMath.TrueAnomalyBetween(orbit2.TrueAnomaly, nuStart, point2.TrueAnomaly, true))
