@@ -219,7 +219,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         */
         public static MBGOrbitLine Create(IIocContainer ioc, IMapViewContext mapViewContext, IOrbitNode node, MapItemData data, Color color, string name, Camera mapCamera, Material lineMaterial, bool isSharedMaterial)
         {
-            Debug.Log("TL0SR2 MBG OrbitLine -- Create ");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Create ");
             IObjectContainerProvider objectContainerProvider = ioc.Resolve<IObjectContainerProvider>(mapViewContext, false);
             MBGOrbitLine t = MapItem.Create<MBGOrbitLine>(ioc, mapViewContext, node, name, objectContainerProvider.OrbitCanvases, mapCamera, objectContainerProvider.OrbitContainer, null);
             t.name = string.Format("{0}({1})", name, t.GetInstanceID());
@@ -326,11 +326,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _lineMaterial = lineMaterial;
             base.Color = color;
             base.Selectable = true;
-            Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
-            Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 2");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 2");
             MBGOrbitInfo = new MBGMapOrbitInfo(Ioc, mapViewContext, null, Camera, this, OrbitInfo.OrbitNode as CraftNode);
-            Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 3");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 3");
             MBGOrbitLine.ChangeReferencePlanetEvent += (sender, name) => this.ChangeReferencePlanet(name);
             //this._apoapsisIcon = UiUtils.CreateUiIcon(base.InfoCanvas, "Apoapsis", false, new Vector2?(value));
             //this._periapsisIcon = UiUtils.CreateUiIcon(base.InfoCanvas, "Periapsis", false, new Vector2?(value));
@@ -349,13 +349,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //this._sphereOfInfluence = MapUtils.CreateSoiSphere(base.OrbitInfo.OrbitNode as PlanetNode, base.ItemName, base.gameObject.layer, base.transform, base.CoordinateConverter);
             }
             */
-            Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 4");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 4");
             _MBGOrbitPointSet = new MBGOrbitPointSet();
             _vectrocityLine = MBGOrbitLine.CreateLine(base.transform, base.Color, base.name, base.gameObject.layer);
             bool isDrawing = mapView.Visible && Data.ShowOrbitLine;
             SetIsDrawing(isDrawing);
             UpdateEventSubscriptions(true);
-            Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 5");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 5");
             //this.PointCount = MBGOrbitLine.CalculatePointsCount();
         }
 
@@ -363,7 +363,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private static VectorLine CreateLine(Transform parent, Color color, string name, int layer)
         //创建轨迹线
         {
-            Debug.Log("TL0SR2 MBG OrbitLine -- CreateLine ");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- CreateLine ");
             List<Vector3> points = new List<Vector3>(150);
             VectorLine vectorLine = new VectorLine($"MBGOrbitLine({name})", points, 2f, LineType.Continuous);
             vectorLine.color = color;
@@ -392,18 +392,20 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //更新轨道线的核心方法
         {
             
-            Debug.Log("TL0SR2 MBG OrbitLine -- UpdateLine ");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- UpdateLine ");
             orbitLine.MBGOrbit = MBGOrbit.GetMBGOrbit(orbitLine.OrbitInfo.OrbitNode as CraftNode);
             orbitLine.MBGOrbitInfo.SetOrbit(orbitLine.MBGOrbit);
+            /*
             if (orbitLine.MBGOrbit == null)
 
             {
-                Debug.LogError("TL0SR2 MBG OrbitLine -- UpdateLine Log -- MBGOrbit Set Failed");
+                //Debug.LogError("TL0SR2 MBG OrbitLine -- UpdateLine Log -- MBGOrbit Set Failed");
             }
             else
             {
                 Debug.Log("TL0SR2 MBG OrbitLine -- UpdateLine Log -- MBGOrbit Set Successful");
             }
+            */
             MBGMapOrbitInfo orbitInfo = orbitLine.MBGOrbitInfo;
             //IOrbitNode orbitNode = orbitInfo.OrbitNode;
             MBGOrbit orbit = orbitInfo.MBGOrbit;
@@ -562,7 +564,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private void SetIsDrawing(bool drawing)
         //指定重绘的方法，大概
         {
-            Debug.Log($"TL0SR2 MBG OrbitLine -- SetIsDrawing {drawing} ");
+            //Debug.Log($"TL0SR2 MBG OrbitLine -- SetIsDrawing {drawing} ");
             if (drawing != IsDrawing)
             {
                 if (drawing)

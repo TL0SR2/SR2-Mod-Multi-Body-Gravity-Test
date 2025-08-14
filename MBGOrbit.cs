@@ -24,7 +24,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
-            Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging += e => ChangeTimeActivate(e);
+            Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
             try
             {
                 FindPlanetInformation();
@@ -256,7 +256,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             Debug.Log("TL0SR2 MBG Orbit -- Change Time Mode");
             double NewMultiplier = e.CurrentMode.TimeMultiplier;
-            _warpdelay = WarpDelayK * NewMultiplier;
+            _warpdelay = 0;//WarpDelayK * NewMultiplier;
             if (NewMultiplier > 0)
             {
                 int n = GetPVNFromTime(CurrentTime + _warpdelay, out _, out _);
@@ -264,8 +264,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime + _warpdelay, NewMultiplier, n));
                 if (e.EnteredWarpMode)
                 {
-                    Debug.Log("TL0SR2 MBG Orbit -- Enter Time Warp Mode");
-                    MBG_PointList[n] = new MBGOrbitPoint(GetCraftStateAtCurrentTime(), CurrentTime);
+                    P_V_Pair state = GetCraftStateAtCurrentTime();
+                    Debug.Log($"TL0SR2 MBG Orbit -- Enter Time Warp Mode -- Add New Point   N {n}");
+                    MBG_PointList[n] = new MBGOrbitPoint(state, CurrentTime);
                 }
                 CalculateAfterWarp = true;
                 ForceReCalculation();
