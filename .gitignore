@@ -1,1 +1,17 @@
 *.meta
+*.asset
+*.md
+*.dll
+*.unity
+*.nuspec
+*.p7s
+LICENSE
+*.pdf
+*.txt
+*.asmdef
+*.config
+Modtools/
+Packages/
+Nuget/
+Resources/
+Content/Craft/Parts/RocketEngines/
