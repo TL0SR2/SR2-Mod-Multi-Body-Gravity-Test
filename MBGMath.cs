@@ -37,10 +37,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint, double startTime, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut)
         {
             P_V_Pair PVPair = startPoint.State;
-            double time = startTime;
+            double time = startPoint.Time;
             CurrentTimeMultiplier = Multiplier;
             int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
             PVOut = new List<MBGOrbitPoint> { };

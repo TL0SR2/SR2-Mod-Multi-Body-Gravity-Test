@@ -63,8 +63,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 int n = GetPVNFromTime(time1, out double Multiplier, out double NTime);
                 //int n2 = GetPVNFromTime(startTime, out _, out _);
                 //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} Time {NTime}");
-                MBGMath.NumericalIntegration(MBG_PointList[n], NTime, elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList);
+                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} InputSelf Time {MBG_PointList[n].Time}   Time {NTime}");
+                MBGMath.NumericalIntegration(MBG_PointList[n], elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList);
                 UpdateList<MBGOrbitPoint>(ref MBG_PointList, PointList, n);
                 EndTime = NTime + elapsedTime * Multiplier;
                 DebugLogPVList(n, 10);
@@ -86,7 +86,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < N; i++)
             {
                 int n = startFrom + i;
-                Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Num {n} Value PostionLength {MBG_PointList[i].State.Position.magnitude}  VelocityLength {MBG_PointList[n].State.Velocity.magnitude} ");
+                Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Num {n} Value PostionLength {MBG_PointList[n].State.Position.magnitude}  VelocityLength {MBG_PointList[n].State.Velocity.magnitude} ");
             }
             Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log End");
         }
@@ -106,8 +106,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //time -= _warpdelay;
                 int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
-                var Output = MBGMath.HermiteInterpolation(MBG_PointList[n].State, MBG_PointList[n + 1].State, NTime, NTime + MBGMath.GetStepTime(Multiplier), time);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PointList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude}  n+1PV PostionLength {MBG_PointList[n+1].State.Position.magnitude} VelocityLength {MBG_PointList[n+1].State.Velocity.magnitude}  Output PostionLength {Output.Position.magnitude} VelocityLength {Output.Velocity.magnitude}");
+                var Output = MBGMath.HermiteInterpolation(MBG_PointList[n].State, MBG_PointList[n + 1].State, MBG_PointList[n].Time, MBG_PointList[n + 1].Time, time);
+                Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PointList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} SelfTime {MBG_PointList[n].Time}  n+1PV PostionLength {MBG_PointList[n+1].State.Position.magnitude} VelocityLength {MBG_PointList[n+1].State.Velocity.magnitude} SelfTime {MBG_PointList[n+1].Time}  Output PostionLength {Output.Position.magnitude} VelocityLength {Output.Velocity.magnitude}");
                 return Output;
             }
             catch (Exception e)
