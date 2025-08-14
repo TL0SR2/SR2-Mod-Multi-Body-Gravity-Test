@@ -882,6 +882,34 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             return Quaterniond.AngleAxis(DegAngle, Axis) * InputVec;
         }
+
+        
+        public static Vector3d GetLagrangePointPosition(Vector3d RaletivePosition, GeneralizedPlanetType type ,double M,double m,Vector3d RaletiveVelocity)
+        //输入行星相对于母星的坐标，输入拉格朗日点类型，输入子母星质量输入子星相对母星的速度，得到拉格朗日点的坐标
+        //注：之所以要输入相对速度，其用途是在计算拉格朗日L4、L5点时用于确定轨道平面。
+        {
+            double massRatio = m / (m + M);
+            Vector3d yVec = Math.Sqrt(3) / 2 * RaletivePosition.magnitude * Vector3d.Cross(RaletivePosition, Vector3d.Cross(RaletiveVelocity, RaletivePosition)).normalized;
+            Vector3d xVec = (M - m) / (M + m) / 2 * RaletivePosition;
+            switch (type)
+            {
+                case GeneralizedPlanetType.Planet:
+                    return RaletivePosition;
+                case GeneralizedPlanetType.L1:
+                    return (1 - Math.Pow(massRatio / 3, 1 / 3)) * RaletivePosition;
+                case GeneralizedPlanetType.L2:
+                    return (1 + Math.Pow(massRatio / 3, 1 / 3)) * RaletivePosition;
+                case GeneralizedPlanetType.L3:
+                    return (-1 - 5 / 12 * massRatio) * RaletivePosition;
+                case GeneralizedPlanetType.L4:
+                    return xVec + yVec;
+                case GeneralizedPlanetType.L5:
+                    return xVec - yVec;
+                default:
+                    Debug.LogError($"TL0SR2 MBG Math -- GetLagrangePointPosition -- Type Error  Error input {type}");
+                    return new Vector3d(0, 0, 0);
+            }
+        }
     }
     public struct P_V_Pair
     {

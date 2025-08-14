@@ -38,6 +38,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     //IOrbitInteractionEventRecipient是这样一个接口，他管理鼠标光标扫过/停留在对象上时的相关方法
     {
         public static event EventHandler<string> ChangeReferencePlanetEvent;
+        public static event EventHandler<GeneralizedPlanetType> ChangeReferenceLPointEvent;
         public override ICameraFocusable AssociatedPlanetCameraFocusable => _playerCraft.PlayerCraft.AssociatedPlanetCameraFocusable;
         //是当前轨道所关联的行星的ICameraFocusable对象喵。可能与视线参考系相关联喵
 
@@ -94,7 +95,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             get
             {
-                return _currentplanet;
+                return _currentplanet.Planet;
             }
         }
         bool ICameraFocusable.FocusByClick
@@ -110,7 +111,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             get
             {
-                return base.ItemRegistry.GetPlanet(_currentplanet);
+                return base.ItemRegistry.GetPlanet(_currentplanet.Planet);
             }
         }
         float ICameraFocusable.MinZoomDistance
@@ -332,6 +333,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             MBGOrbitInfo = new MBGMapOrbitInfo(Ioc, mapViewContext, null, Camera, this, OrbitInfo.OrbitNode as CraftNode);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 3");
             MBGOrbitLine.ChangeReferencePlanetEvent += (sender, name) => this.ChangeReferencePlanet(name);
+            MBGOrbitLine.ChangeReferenceLPointEvent += (sender, type) => this.ChangeLPointTypeMethod(type);
             //this._apoapsisIcon = UiUtils.CreateUiIcon(base.InfoCanvas, "Apoapsis", false, new Vector2?(value));
             //this._periapsisIcon = UiUtils.CreateUiIcon(base.InfoCanvas, "Periapsis", false, new Vector2?(value));
             //this._ascendingNodeIcon = UiUtils.CreateUiIcon(base.InfoCanvas, "AscendingNode", false, new Vector2?(value));
@@ -605,14 +607,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
             IPlanetNode planet = MBGOrbit.SunNode.FindPlanet(name);
             if (planet != null)
             {
-                _currentplanet = planet;
+                _currentplanet = new MBGGeneralizedPlanet(planet);
             }
         }
         public void ChangeReferencePlanet(IPlanetNode planet)
         {
             if (planet != null)
             {
-                _currentplanet = planet;
+                _currentplanet = new MBGGeneralizedPlanet(planet);
                 UpdateLine();
             }
         }
@@ -625,7 +627,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public Vector3d GetPointSolarPosition(MBGOrbitPoint point)
         {
             Vector3d RelativePosition = point.State.Position - this._currentplanet.GetSolarPositionAtTime(point.Time);
-            if (RotateReference == RotateMode.None || (_currentplanet.Parent == null && RotateReference == RotateMode.Revolution))
+            if (RotateReference == RotateMode.None || (_currentplanet.isSun && RotateReference == RotateMode.Revolution))
             {
                 //如果不启用旋转追随，或者启用模式为公转追随而且当前行星是系统的恒星（此时公转追随没有意义），那么直接平移坐标即可
                 return RelativePosition + this._currentplanet.SolarPosition;
@@ -633,9 +635,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (RotateReference == RotateMode.Rotation)
             {
                 //如果启用自转追随，那么将相对位置乘上一个旋转矩阵，其旋转角度是初始旋转角度+当前行星的自旋速度乘时间
-                double rotateAngle = _currentplanet.PlanetData.AngularVelocity * 57.29578 * point.Time + InitRotateAngle;
+                double rotateAngle = _currentplanet.Planet.PlanetData.AngularVelocity * 57.29578 * point.Time + InitRotateAngle;
                 RelativePosition = Quaterniond.Euler(0.0, rotateAngle, 0.0) * RelativePosition;
-                return RelativePosition + this._currentplanet.SolarPosition;
+                return RelativePosition + this._currentplanet.Planet.SolarPosition;
             }
             //以上判断排除其他情况之后，剩下在这里计算的是旋转追随模式设置为公转追随并且不是恒星的星球
             Quaternion BasicQ = Quaternion.LookRotation((Vector3)(_currentplanet.GetSolarPositionAtTime(0) - _currentplanet.Parent.GetSolarPositionAtTime(0)));//基准母-子向量
@@ -661,6 +663,23 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static void SetRotateInitAngle(double degree)
         {
             InitRotateAngle = degree % 360;
+        }
+
+        public static void ChangeLPointType(int index)
+        {
+            if (index >= 0 && index <= 5)
+            {
+                ChangeReferenceLPointEvent?.Invoke(null, (GeneralizedPlanetType)index);
+            }
+            else
+            {
+                Debug.LogWarning("TL0SR2 MBG Orbit Line -- ChangeLPointType -- Invalid Mode Index.");
+            }
+        }
+
+        public void ChangeLPointTypeMethod(GeneralizedPlanetType type)
+        {
+            _currentplanet.type = type;
         }
 
         public static RotateMode RotateReference = RotateMode.None;
@@ -704,7 +723,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private Material _lineMaterial;
         //轨道线绘制使用的材质喵
 
-        private IPlanetNode _currentplanet = MBGOrbit.SunNode;
+        private MBGGeneralizedPlanet _currentplanet;
         //当前的视觉参考系中心喵
         //private DrawModeReferenceInfo _drawModeReferenceInfo;
 
