@@ -149,7 +149,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     craftNodeOrbitMap.Remove(craftNode);
 
-                    Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode}");
+                    Debug.Log($"MBGOrbit.RemoveMBGOrbit -- Removed orbit for {craftNode.Name}");
                 }
             }
 
@@ -359,7 +359,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public P_V_Pair GetCraftStateAtCurrentTime()
         {
             var craft = CurrentCraft;
-            return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime), craft.GetSolarVelocityAtTime(CurrentTime));
+            //return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime), craft.GetSolarVelocityAtTime(CurrentTime));
+            //return new P_V_Pair(craft.SolarPosition, craft.SolarVelocity);
+            Debug.Log($"TL0SR2 MBG Orbit -- Get Craft State At Current Time -- Log Data -- Method 1 P {craft.GetSolarPositionAtTime(CurrentTime).magnitude}  V {craft.GetSolarVelocityAtTime(CurrentTime).magnitude}  Method 2 P {craft.SolarPosition.magnitude} V {craft.SolarVelocity.magnitude} Method 3 P {(craft.Position + craft.Parent.SolarPosition).magnitude} V {(craft.Velocity + craft.Parent.SolarVelocity).magnitude}");
+            return new P_V_Pair(craft.SolarPosition, craft.SolarVelocity);
         }
 
         public static void SetWarpDelayK(double value)
