@@ -53,24 +53,27 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                double time1 = startTime;
-                if (CalculateAfterWarp)
+                if (GetCraft(this) != null)
                 {
-                    CalculateAfterWarp = false;
-                    time1 += _warpdelay;
-                }
+                    double time1 = startTime;
+                    if (CalculateAfterWarp)
+                    {
+                        CalculateAfterWarp = false;
+                        time1 += _warpdelay;
+                    }
 
-                int n = GetPVNFromTime(time1, out double Multiplier, out double NTime);
-                //int n2 = GetPVNFromTime(startTime, out _, out _);
-                //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} InputSelf Time {MBG_PointList[n].Time}   Time {NTime}");
-                MBGMath.NumericalIntegration(MBG_PointList[n], elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList);
-                UpdateList<MBGOrbitPoint>(ref MBG_PointList, PointList, n);
-                EndTime = NTime + elapsedTime * Multiplier;
-                DebugLogPVList(n, 10);
-                Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PointList.Count}");
-                CaculationNum++;
-                // //接下来应该在此处执行激活重绘轨道线的操作
+                    int n = GetPVNFromTime(time1, out double Multiplier, out double NTime);
+                    EndTime = NTime + elapsedTime * Multiplier;
+                    //int n2 = GetPVNFromTime(startTime, out _, out _);
+                    //int step = (int)Math.Floor(elapsedTime / _listAccuracyTime);
+                    Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} InputSelf Time {MBG_PointList[n].Time}   Time {NTime}");
+                    MBGMath.NumericalIntegration(MBG_PointList[n], elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList);
+                    UpdateList<MBGOrbitPoint>(ref MBG_PointList, PointList, n);
+                    DebugLogPVList(n, 10);
+                    Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PointList.Count}");
+                    CaculationNum++;
+                    // //接下来应该在此处执行激活重绘轨道线的操作
+                }
             }
             catch (Exception e)
             {
@@ -279,7 +282,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int GetPVNFromTime(double time, out double Multiplier, out double NTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】的PV列表对应序号n值,并输出这个n对应的时间加速倍率和n值对应的时间。
         {
-            /*
+            
             if (time >= _startTime)
             {
                 //time -= _warpdelay;
@@ -292,10 +295,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Multiplier = 1;
             NTime = _startTime;
             return 0;
-            */
-            if(time >= _startTime)
+            
+            /*
+            if (time >= _startTime)
             {
-                for(int i = MBG_PointList.Count-2;i>=0;i--)
+                for (int i = MBG_PointList.Count - 2; i >= 0; i--)
                 {
                     var point = MBG_PointList[i];
                     if (point.Time <= time)
@@ -310,6 +314,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Multiplier = 1;
             NTime = _startTime;
             return 0;
+            */
         }
 
         public int GetListTLPFromTime(double time, out double Multiplier, out double changeTime)
@@ -361,7 +366,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             var craft = CurrentCraft;
             //return new P_V_Pair(craft.GetSolarPositionAtTime(CurrentTime), craft.GetSolarVelocityAtTime(CurrentTime));
             //return new P_V_Pair(craft.SolarPosition, craft.SolarVelocity);
-            Debug.Log($"TL0SR2 MBG Orbit -- Get Craft State At Current Time -- Log Data -- Method 1 P {craft.GetSolarPositionAtTime(CurrentTime).magnitude}  V {craft.GetSolarVelocityAtTime(CurrentTime).magnitude}  Method 2 P {craft.SolarPosition.magnitude} V {craft.SolarVelocity.magnitude} Method 3 P {(craft.Position + craft.Parent.SolarPosition).magnitude} V {(craft.Velocity + craft.Parent.SolarVelocity).magnitude}");
+            //Debug.Log($"TL0SR2 MBG Orbit -- Get Craft State At Current Time -- Log Data -- Method 1 P {craft.GetSolarPositionAtTime(CurrentTime).magnitude}  V {craft.GetSolarVelocityAtTime(CurrentTime).magnitude}  Method 2 P {craft.SolarPosition.magnitude} V {craft.SolarVelocity.magnitude} Method 3 P {(craft.Position + craft.Parent.SolarPosition).magnitude} V {(craft.Velocity + craft.Parent.SolarVelocity).magnitude}");
             return new P_V_Pair(craft.SolarPosition, craft.SolarVelocity);
         }
 

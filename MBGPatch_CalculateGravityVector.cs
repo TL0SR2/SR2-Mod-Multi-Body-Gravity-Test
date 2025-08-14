@@ -57,6 +57,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Math.Max(Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier,1))
             {
+                Debug.Log("TL0SR2 MBG -- CalculateGravityVector -- Near End Time. Force ReCalculate.");
                 mbgOrbit.ForceReCalculation();
             }
 
