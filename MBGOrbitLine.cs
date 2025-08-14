@@ -201,7 +201,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return Create<MBGOrbitLine>(ioc, mapViewContext, node, data, color, name, mapCamera, lineMaterial, isSharedMaterial);
         }
         */
-        
+
         public static MBGOrbitLine Create(IIocContainer ioc, IMapViewContext mapViewContext, IOrbitNode node, MapItemData data, Color color, string name, Camera mapCamera, Material lineMaterial)
         {
             return Create(ioc, mapViewContext, node, data, color, name, mapCamera, lineMaterial, false);
@@ -271,7 +271,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             */
         }
-        
+
         /*
         private static Vector4d GetPosition(int index, List<Vector4d> scaledOrbitPointsCache, MBGMapOrbitInfo orbitInfo, IMapViewCoordinateConverter coordinateConverter, ref int indexOfPrecisePoint)
         //获取轨道线绘制位置的方法
@@ -359,7 +359,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             //this.PointCount = MBGOrbitLine.CalculatePointsCount();
         }
 
-        
+
         private static VectorLine CreateLine(Transform parent, Color color, string name, int layer)
         //创建轨迹线
         {
@@ -371,27 +371,27 @@ namespace Assets.Scripts.Flight.Sim.MBG
             vectorLine.rectTransform.SetParent(parent);
             return vectorLine;
         }
-        
+
         public void UpdateLine()
         //命令更新轨迹线
         {
             UpdateLine(false);
         }
-        
+
 
         private void UpdateLine(bool forceUpdate)
         //同上
         {
             if (Data.ShowOrbitLine || forceUpdate)
             {
-                MBGOrbitLine.UpdateLine(this, base.DrawModeProvider, ref _MBGOrbitPointSet, base.CoordinateConverter,ref _scaledLocalMBGOrbitPointsCache, ref _orbitLineRenderer);
+                MBGOrbitLine.UpdateLine(this, base.DrawModeProvider, ref _MBGOrbitPointSet, base.CoordinateConverter, ref _scaledLocalMBGOrbitPointsCache, ref _orbitLineRenderer);
             }
         }
 
         public static void UpdateLine(MBGOrbitLine orbitLine, IDrawModeProvider drawModeProvider, ref MBGOrbitPointSet MBGOrbitPointSet, IMapViewCoordinateConverter coordinateConverter, ref List<Vector4d> scaledPointsCache, ref Renderer lineRenderer)
         //更新轨道线的核心方法
         {
-            
+
             //Debug.Log("TL0SR2 MBG OrbitLine -- UpdateLine ");
             orbitLine.MBGOrbit = MBGOrbit.GetMBGOrbit(orbitLine.OrbitInfo.OrbitNode as CraftNode);
             orbitLine.MBGOrbitInfo.SetOrbit(orbitLine.MBGOrbit);
@@ -470,7 +470,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         {
                             orbitLine.ChangeReferencePlanet(MBGOrbit.SunNode);
                         }
-                        vectrocityLine.points3.Add((Vector3)coordinateConverter.ConvertSolarToMapView(point.State.Position - orbitLine._currentplanet.GetSolarPositionAtTime(point.Time) + orbitLine._currentplanet.SolarPosition));
+                        vectrocityLine.points3.Add((Vector3)coordinateConverter.ConvertSolarToMapView(orbitLine.GetPointSolarPosition(point)));
                         //scaledPointsCache.Add(GetScaledCachePoint(point,coordinateConverter));
                     }
                 }
@@ -576,13 +576,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
         internal void SetColor(Color color)
-		{
-			base.Color = color;
-			if (IsValidRendering)
-			{
-				_vectrocityLine.color = color;
-			}
-		}
+        {
+            base.Color = color;
+            if (IsValidRendering)
+            {
+                _vectrocityLine.color = color;
+            }
+        }
         internal void Disable()
         //Disable当前的GameObj
         {
@@ -622,6 +622,53 @@ namespace Assets.Scripts.Flight.Sim.MBG
             MBGOrbitLine.ChangeReferencePlanetEvent?.Invoke(null, name);
         }
 
+        public Vector3d GetPointSolarPosition(MBGOrbitPoint point)
+        {
+            Vector3d RelativePosition = point.State.Position - this._currentplanet.GetSolarPositionAtTime(point.Time);
+            if (RotateReference == RotateMode.None || (_currentplanet.Parent == null && RotateReference == RotateMode.Revolution))
+            {
+                //如果不启用旋转追随，或者启用模式为公转追随而且当前行星是系统的恒星（此时公转追随没有意义），那么直接平移坐标即可
+                return RelativePosition + this._currentplanet.SolarPosition;
+            }
+            if (RotateReference == RotateMode.Rotation)
+            {
+                //如果启用自转追随，那么将相对位置乘上一个旋转矩阵，其旋转角度是初始旋转角度+当前行星的自旋速度乘时间
+                double rotateAngle = _currentplanet.PlanetData.AngularVelocity * 57.29578 * point.Time + InitRotateAngle;
+                RelativePosition = Quaterniond.Euler(0.0, rotateAngle, 0.0) * RelativePosition;
+                return RelativePosition + this._currentplanet.SolarPosition;
+            }
+            //以上判断排除其他情况之后，剩下在这里计算的是旋转追随模式设置为公转追随并且不是恒星的星球
+            Quaternion BasicQ = Quaternion.LookRotation((Vector3)(_currentplanet.GetSolarPositionAtTime(0) - _currentplanet.Parent.GetSolarPositionAtTime(0)));//基准母-子向量
+            Quaternion RealQ = Quaternion.LookRotation((Vector3)(_currentplanet.GetSolarPositionAtTime(point.Time) - _currentplanet.Parent.GetSolarPositionAtTime(point.Time)));//时间T时刻的母-子向量
+            //只需要把相对位置向量按照相同的旋转角度旋转即可(附加一个初始角度，大概喵)
+            float DeltaAngle = Quaternion.Angle(BasicQ, RealQ);//两个旋转之间的角度，单位为角度制
+            Quaterniond RotateQ = Quaterniond.FromQuaternion(Quaternion.SlerpUnclamped(BasicQ, RealQ, 1 + (float)InitRotateAngle / DeltaAngle));
+            RelativePosition = RotateQ * RelativePosition;
+            return RelativePosition + this._currentplanet.SolarPosition;
+        }
+
+        public static void SetReferenceMode(int index)
+        {
+            if (index >= 0 && index <= 2)
+            {
+                RotateReference = (RotateMode)index;
+            }
+            else
+            {
+                Debug.LogWarning("TL0SR2 MBG Orbit Line -- SetReferenceMode -- Invalid Mode Index.");
+            }
+        }
+        public static void SetRotateInitAngle(double degree)
+        {
+            InitRotateAngle = degree % 360;
+        }
+
+        public static RotateMode RotateReference = RotateMode.None;
+        //这个值指示轨迹线绘制时是否采用旋转模式
+
+        public static double InitRotateAngle = 0;
+        //这个值指示如果采用旋转模式，那么初始旋转角（相对于母-子连线，俯视（从北方看）逆时针旋转）是多少，单位为角度制
+
         private bool _forceUpdateOrbitLine;
         //一个变量，用来指定轨道线强制重绘
         private List<Vector4d> _scaledLocalMBGOrbitPointsCache;
@@ -660,7 +707,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private IPlanetNode _currentplanet = MBGOrbit.SunNode;
         //当前的视觉参考系中心喵
         //private DrawModeReferenceInfo _drawModeReferenceInfo;
-        
+
         public int Id { get; private set; }
         //GameObj的ID
 
@@ -681,5 +728,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //暂不使用，大概
         Renderer _orbitLineRenderer;
         //y用于渲染轨道线的渲染器
+
+        public enum RotateMode
+        {
+            None = 0,
+            //不启用旋转模式
+            Rotation = 1,
+            //自转追随模式
+            Revolution = 2
+            //公转追随模式
+        }
     }
 }

@@ -228,7 +228,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Func<P_V_Pair, double> b = k => h / 2 * JacobiFunc(x_n + h / 2, y_n.Position + k.Position / 2)[0].z;
             Func<P_V_Pair, double> c = k => h / 2 * JacobiFunc(x_n + h / 2, y_n.Position + k.Position / 2)[1].z;
             //通过一次性求解线性方程组可以找到牛顿法迭代器的输入函数，输入函数维度6，六个分量分别命名为m1~m6
-            
+
 
             Func<List<P_V_Pair>, List<P_V_Pair>> JFFunction = list =>
             {
@@ -663,7 +663,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         // A37 A38 A39
         //每个A3方阵有6个独立参数，9个A3方阵可以各不相同，因此输入的List<P_V_Pair>应该包含9组值，顺序按A31到A39矩阵，每组值内的第0项到5项依次为A3方阵的xyzabc值。
         {
-            double[,] A9 = new double[9,9];
+            double[,] A9 = new double[9, 9];
 
             for (int i = 0; i < 9; i++)
             {
@@ -691,12 +691,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
         };
 
 
-        public static Func<double[][], Func<double,Vector3d, List<Vector3d>>, Func<List<P_V_Pair>, List<P_V_Pair>>> CreateA3MatrixParam = (pL, Func) =>
+        public static Func<double[][], Func<double, Vector3d, List<Vector3d>>, Func<List<P_V_Pair>, List<P_V_Pair>>> CreateA3MatrixParam = (pL, Func) =>
         //输入系统参量列表tL，这个数组的结构是这样的，第一项指定他对应第几个k/f值，第二项指定这个目标函数内的时间附加量，剩余的参量依次指定各项的系数（参考butcher表），输入引力雅可比函数Func，输出这样一个函数：对这个函数输入参量K，将会输出一个六元矢量列表，其中，每一项的分量是由K和系数决定的J6矩阵中的A3矩阵的参量，依次为xyzabc；列表中元素的顺序由pL指定。
         {
             Func<List<P_V_Pair>, List<P_V_Pair>> OutFunc = K =>
             {
-                List<P_V_Pair> outList = new List<P_V_Pair>{};
+                List<P_V_Pair> outList = new List<P_V_Pair> { };
                 for (int i = 0; i < pL.Length; i++)
                 {
                     for (int k = 1; k < pL[i].Length; k++)
@@ -765,11 +765,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
 
-        public static void Matrix_LUDecomposition(double[,] A, int n,out double[,] L,out double[,] U)
+        public static void Matrix_LUDecomposition(double[,] A, int n, out double[,] L, out double[,] U)
         //输入矩阵元,输入矩阵阶数，进行LU分解,输出列表包括两项，依次为L矩阵和U矩阵
         {
-            L = new double[n,n];
-            U = new double[n,n];
+            L = new double[n, n];
+            U = new double[n, n];
             for (int k = 0; k < n; k++)
             {
                 for (int j = 0; j < n; j++)
@@ -875,6 +875,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
             }
             return x;
+        }
+
+        public static Vector3d RotateVector(Vector3d InputVec, Vector3d Axis, double DegAngle)
+        {
+            return Quaterniond.AngleAxis(DegAngle, Axis) * InputVec;
         }
     }
     public struct P_V_Pair

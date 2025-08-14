@@ -37,6 +37,8 @@ namespace Assets.Scripts
             DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Warp Delay Ratio", value => MBGOrbit.SetWarpDelayK(value));
             DevConsoleService.Instance.RegisterCommand<string>("Multi Body Gravity -- Change Orbit Line Reference", value => MBGOrbitLine.MBGOrbitLineChangeReference(value));
             DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Calculation Time", value => MBGOrbit.SetCalculationTime(value));
+            DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Rotate Reference Angle", value => MBGOrbitLine.SetRotateInitAngle(value));
+            DevConsoleService.Instance.RegisterCommand<int>("Multi Body Gravity -- Set Rotate Reference Mode", value => MBGOrbitLine.SetReferenceMode(value));
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
         }
 
