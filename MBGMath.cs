@@ -37,19 +37,20 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
         {
             P_V_Pair PVPair = startPoint.State;
             double time = startPoint.Time;
             CurrentTimeMultiplier = Multiplier;
-            int CaculateStep = (int)Math.Floor(elapsedTime / _calculationStepTime);
+            double Step = LongPrediction ? _CalculationRealStep * Multiplier : _calculationStepTime;
+            int CaculateStep = (int)Math.Floor(elapsedTime / Step);
             PVOut = new List<MBGOrbitPoint> { };
             Debug.Log($"TL0SR2 MBG Math -- Start NumericalIntegration Total Step: {CaculateStep}   elapsedTime:{elapsedTime}  dt: {_calculationStepTime}");
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(new MBGOrbitPoint(PVPair, time));
                 PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, GravityFunc);
-                time += _calculationStepTime;
+                time += Step;
             }
 
         }
