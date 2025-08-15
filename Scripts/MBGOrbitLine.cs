@@ -6,7 +6,7 @@ using Assets.Scripts.Flight.MapView.Items;
 using Assets.Scripts.Flight.MapView.Orbits;
 using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
 using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes.Interfaces;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.SoiEncounters;
+using UnityEngine.EventSystems;
 using Assets.Scripts.Flight.MapView.Orbits.DrawModes;
 using Assets.Scripts.Flight.MapView.Orbits.DrawModes.Interfaces.IDrawMode;
 using Assets.Scripts.Flight.MapView.Orbits.Interfaces;
@@ -25,6 +25,7 @@ using UnityEngine.UI;
 using Vectrosity;
 using Assets.Scripts.Flight.MapView;
 using ModApi.Common.UI;
+using Assets.Scripts.Career.Contracts.Requirements;
 
 //当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），////将轨道点火节点等功能一律关闭
 //轨道特殊点（包括与行星的撞击点）暂不启用
@@ -32,7 +33,7 @@ using ModApi.Common.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
-    public class MBGOrbitLine : MapItem, ICameraFocusable, IOrbitInteractionEventRecipient
+    public class MBGOrbitLine : MapItem, ICameraFocusable, IOrbitInteractionEventRecipient, IPointerClickHandler, IEventSystemHandler
     //MapItem是这样一个类，他包含所有显示在地图上的实际物体和图标
     //ICameraFocusable是这样一个接口，他包含在地图界面上与可被摄像机聚焦的相关对象
     //IOrbitInteractionEventRecipient是这样一个接口，他管理鼠标光标扫过/停留在对象上时的相关方法
@@ -208,22 +209,40 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Vector3d Direction = mouseRay.direction;
                 double distance = double.PositiveInfinity;
                 Vector3d Targetpoint = new Vector3d();
-                for (int i = 0; i < _vectrocityLine.points3.Count - 1; i++)
+                MBGOrbitPoint orbitPoint = new MBGOrbitPoint();
+                for (int i = 0; i < pointList.Count - 1; i++)
                 {
-                    Vector3d point = _vectrocityLine.points3[i];
+                    Vector3d point = CoordinateConverter.ConvertSolarToMapView(pointList[i].State.Position);
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
                     if (Distance <= 100 && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
+                        orbitPoint = pointList[i];
                     }
                 }
                 if (!double.IsPositiveInfinity(distance))
                 {
                     this._nodeAdderGraphicContainer.transform.position = (Vector3)Targetpoint;
+                    this.PointerPoint = orbitPoint;
                     this._addNodeIcon.enabled = true;
+                    this.AllowAddNode = true;
+
                 }
-                else this._addNodeIcon.enabled = false;
+                else
+                {
+                    this._addNodeIcon.enabled = false;
+                    this.AllowAddNode = false;
+                }
+            }
+        }
+
+        public override void OnPointerClick(PointerEventData eventData)
+        {
+            base.OnPointerClick(eventData);
+            if (AllowAddNode)
+            {
+                Debug.Log($"TL0SR2 MBG OrbitLine -- OnPointerClick -- Test Log  Allow Create Node At position {PointerPoint.State.Position}");
             }
         }
 
@@ -487,6 +506,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //int num = (drawMode.UpdateReferencePerPoint || !MapUtils.SamePlanet(orbitInfo.OrbitNode.Parent, drawMode.GetReferenceNode(orbitInfo))) ? (MBGOrbitPointSet.Count - 5) : MBGOrbitPointSet.Count;
                 int num = MBGOrbitPointSet.Count;
                 vectrocityLine.points3.Clear();
+                orbitLine.pointList.Clear();
                 /*
                 vectrocityLine.Uv2.Clear();
                 */
@@ -528,6 +548,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         {
                             orbitLine.ChangeReferencePlanet(MBGOrbit.SunNode);
                         }
+
+                        orbitLine.pointList.Add(point);
                         vectrocityLine.points3.Add((Vector3)coordinateConverter.ConvertSolarToMapView(orbitLine.GetPointSolarPosition(point)));
                         //scaledPointsCache.Add(GetScaledCachePoint(point,coordinateConverter));
                     }
@@ -818,6 +840,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public override bool DisplayManeuverNodeAdderOnMouseHover => true;
         //是否允许在鼠标经过时显示增加点火点的图标
+
+        public MBGOrbitPoint PointerPoint;
+        //光标指向位置的太阳坐标
+
+        public bool AllowAddNode = false;
+        //指示当前是否允许添加点火节点（即有无有效的光标指向位置）
+
+        public List<MBGOrbitPoint> pointList;
+        //当前轨道线上显示的节点列表
 
         public enum RotateMode
         {
