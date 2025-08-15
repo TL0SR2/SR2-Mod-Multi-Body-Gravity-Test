@@ -28,7 +28,6 @@ namespace Assets.Scripts
 
         private void Awake()
         {
-            Debug.Log("干了0");
             Instance = this;
         }
 
@@ -123,17 +122,16 @@ namespace Assets.Scripts
                     : MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name,
                 value => MBGOrbitLine.MBGOrbitLineChangeReference(value),
                 this.PlanetNameList));
-            /*
-            //这个东西有问题
-            inspectorModel.Add(new DropdownModel(
+            GroupModel groupModelLagrangePoint = new GroupModel("拉格朗日点设置");
+            groupModelLagrangePoint.Add(new DropdownModel(
                 "拉格朗日点模式",
                 () => Game.Instance.FlightScene.CraftNode == null
-                    ? "你妈的这个地方null了"
+                    ? "你妈的这个地方null了"    
                     : GetCurrentLagrangePointMode(MBGOrbitLine.Instance.GetCurrentPlanet().type),
-                value =>Debug.Log(value),
-                this.PlanetNameList));
-            */
+                value =>SetLagrangePointMode(value),
+                this.LagrangePointModeList));
             
+            inspectorModel.AddGroup(groupModelLagrangePoint);
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
                 PanelWidth = 400,
@@ -165,6 +163,10 @@ namespace Assets.Scripts
 
         private void SetLagrangePointMode(string value)
         {
+            if (MBGOrbitLine.Instance.GetCurrentPlanet().isSun)
+            {
+                return;
+            }
             switch (value)
             {
                 case "无":
