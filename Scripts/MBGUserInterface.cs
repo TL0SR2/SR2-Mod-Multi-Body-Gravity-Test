@@ -66,7 +66,6 @@ namespace Assets.Scripts
                 if (Game.Instance.FlightScene.CraftNode != null && MBGOrbitLine.Instance != null)
                 {
                     CreateInspectorPanel();
-                    // Create panel only when ready
                 }
                 else
                 {
@@ -106,29 +105,52 @@ namespace Assets.Scripts
                         new XAttribute("class", "panel-button-icon"),
                         //贴图先用原版的
                         new XAttribute("sprite", "Ui/Sprites/Flight/IconMapView"))));
-            Debug.Log("干");
         }
         public void ToggleMGBUI()
-        { 
-            if (inspectorPanel == null)
+        {
+            try
             {
-                if (Game.Instance.FlightScene?.CraftNode != null)
+                inspectorPanel.Visible = !inspectorPanel.Visible;
+            }
+            catch (Exception)
+            {
+                CreateInspectorPanel();
+                inspectorPanel.Visible = !inspectorPanel.Visible;
+            }
+            /*
+            try
+            {
+                if (inspectorPanel == null)
                 {
-                    CreateInspectorPanel();
-                    if (inspectorPanel== null)
+                    if (Game.Instance.FlightScene?.CraftNode != null)
                     {
-                        Debug.LogWarning("inspectorPanel怎么还是null,你心里没点b数吗");
+                        CreateInspectorPanel();
+                        if (inspectorPanel== null)
+                        {
+                            Debug.LogWarning("inspectorPanel怎么还是null,你心里没点b数吗");
+                            return;
+                        }
+                    
+                        inspectorPanel.Visible = true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Craft node都没有,你toggle个鸡巴");
                         return;
                     }
-                    inspectorPanel.Visible = true;
                 }
-                else
+                if (inspectorPanel != null)
                 {
-                    Debug.LogWarning("你toggle个鸡巴");
-                    return;
+                    inspectorPanel.Visible = !inspectorPanel.Visible;
                 }
             }
-            inspectorPanel.Visible = !inspectorPanel.Visible;
+            catch (Exception )
+            {
+                CreateInspectorPanel();
+                inspectorPanel.Visible = !inspectorPanel.Visible;
+                
+            }*/
+            
         }
 
         private void CreateInspectorPanel()
