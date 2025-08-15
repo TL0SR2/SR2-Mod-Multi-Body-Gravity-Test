@@ -401,7 +401,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 			this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
 			this._addNodeIcon.gameObject.layer = base.gameObject.layer;
 			this._addNodeIcon.enabled = false;
-			canvas.gameObject.AddComponent<OverrideSortingOnStart>();
+			canvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
 			Utilities.FixUnityCanvasSortingBug(canvas);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
@@ -848,7 +848,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public bool AllowAddNode = false;
         //指示当前是否允许添加点火节点（即有无有效的光标指向位置）
 
-        public List<MBGOrbitPoint> pointList;
+        public List<MBGOrbitPoint> pointList = new List<MBGOrbitPoint>(){};
         //当前轨道线上显示的节点列表
 
         public enum RotateMode
