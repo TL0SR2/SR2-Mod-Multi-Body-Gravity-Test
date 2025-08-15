@@ -11,7 +11,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         public MapCraft Craft;
 
-        public MBGOrbitLine mBGOrbitLine;
+        public MBGOrbitLine MBGOrbitLine;
 
         public int LastUpdateCalculateNum = 0;
 

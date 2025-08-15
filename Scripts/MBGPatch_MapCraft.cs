@@ -57,7 +57,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Material lineMaterial = UnityEngine.Object.Instantiate<Material>(_orbitLineMaterial);
 
                 MBGOrbitLine MBGOrbitLine = MBGOrbitLine.Create(__instance.Ioc, __instance.MapViewContext, __instance.OrbitInfo.OrbitNode, __instance.Data, UiUtils.GetSortedOrbitLineColor(0), "PlayerOrbit", __instance.Camera, lineMaterial);
-                MapCraft_PostScript_Dic[__instance].mBGOrbitLine = MBGOrbitLine;
+                MapCraft_PostScript_Dic[__instance].MBGOrbitLine = MBGOrbitLine;
             }
 
         }
@@ -86,7 +86,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 bool flag11 = mapViewVisible && (flag1 || flag4 || _nodeListChanged || _chainSelectionChanged || _orbitLineDirty);
                 if (flag11)
                 {
-                    MapCraft_PostScript_Dic[__instance].mBGOrbitLine.UpdateLine();
+                    MapCraft_PostScript_Dic[__instance].MBGOrbitLine.UpdateLine();
                 }
             }
 
@@ -102,7 +102,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             public static void Postfix(MapCraft __instance)
             {
-                MapCraft_PostScript_Dic[__instance].mBGOrbitLine?.Destroy();
+                MapCraft_PostScript_Dic[__instance].MBGOrbitLine?.Destroy();
                 try
                 {
                     MapCraft_PostScript_Dic.Remove(__instance);

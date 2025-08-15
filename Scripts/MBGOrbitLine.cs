@@ -164,21 +164,24 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return new OrbitInteractionScript.OrbitInteractionDelegate(OnHoverStay);
             }
         }
-        private void OnHoverEnter(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
+        public void OnHoverEnter(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
         //光标扫过对象【进入状态】时触发的方法
         {
+            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Enter log");
         }
 
-        private void OnHoverExit(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
+        public void OnHoverExit(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
         //光标扫过对象【离开状态】时触发的方法
         {
+            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Exit log");
             OrbitHoveredWithDelay = false;
         }
 
-        private void OnHoverStay(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
+        public void OnHoverStay(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
         //光标扫过对象【停留于对象上】时触发的方法
         //下面的代码与点火计划节点有关。
         {
+            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Stay log");
             if (!_playerCraft.PlayerCraft.ManeuverNodeManager.AnyItemsBeingHoveredWhichPreventManeuverNodeAdder && (double)pointInfo.HoverTime > 0.25)
             {
                 OrbitHoveredWithDelay = true;
@@ -314,6 +317,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             //base.Initialize(data, color, lineMaterial, isSharedMaterial);
             Debug.Log("TL0SR2 MBG OrbitLine -- Initialize ");
             Data = data;
+            this.Selectable = true;
+            //this.DisplayManeuverNodeAdderOnMouseHover = true;
             Id = gameObject.GetInstanceID();
             //base.OrbitInfo.SetOrbitLine(this);
             IIocContainer ioc = base.Ioc;
@@ -753,6 +758,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //暂不使用，大概
         Renderer _orbitLineRenderer;
         //y用于渲染轨道线的渲染器
+
+        public override bool DisplayManeuverNodeAdderOnMouseHover => true;
+        //是否允许在鼠标经过时显示增加点火点的图标
 
         public enum RotateMode
         {
