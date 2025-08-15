@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms.VisualStyles;
 using System.Xml.Linq;
 using ModApi.Ui;
 using UnityEngine;
@@ -11,6 +12,8 @@ using ModApi.Math;
 using ModApi.Scenes.Events;
 using ModApi.Ui.Inspector;
 using Assets.Scripts.Flight.Sim.MBG;
+using ModApi.Craft;
+using ModApi.Flight.Sim;
 
 namespace Assets.Scripts
 {
@@ -23,7 +26,7 @@ namespace Assets.Scripts
         private InspectorModel inspectorModel;
         
         public List<string> PlanetNameList { get; private set; } = new List<string>();
-        public List<string> LagrangePointModeList { get; private set; } = new List<string>();
+        public readonly List<string> LagrangePointModeList = new List<string>(new[] { "无", "L1", "L2", "L3", "L4", "L5" });
         
 
         private void Awake()
@@ -36,11 +39,11 @@ namespace Assets.Scripts
             Instance = this;
             Game.Instance.SceneManager.SceneLoaded += OnSceneLoaded;
             Game.Instance.UserInterface.AddBuildUserInterfaceXmlAction(UserInterfaceIds.Flight.NavPanel, OnBuildFlightMBGUI);
+            MBGOrbitLine.ChangeReferencePlanetEvent+=OnChangeReferencePlanetEvent;
         }
-
+        
         private void Update()
         {
-
         }
 
         #region 事件
@@ -51,30 +54,37 @@ namespace Assets.Scripts
         {
             if (e.Scene == "Flight")
             {
-                if (Game.Instance.FlightScene.CraftNode!= null)
-                {
-                    //MBGOrbitLine.MBGOrbitLineChangeReference(Game.Instance.FlightScene.CraftNode.Parent.Name);
-                }
-                
                 PlanetNameList.Clear();
-                LagrangePointModeList.Clear();
-                foreach (var VARIABLE in Game.Instance.FlightScene.FlightState.SolarSystemData.Planets)
+                
+                Game.Instance.FlightScene.PlayerChangedSoi+=OnPlayerChangedSoi;
+                foreach (var planet in Game.Instance.FlightScene.FlightState.SolarSystemData.Planets)
                 {
-                    PlanetNameList.Add(VARIABLE.Name);
+                    PlanetNameList.Add(planet.Name);
                 }
-                LagrangePointModeList.Add("无");
-                LagrangePointModeList.Add("L1");
-                LagrangePointModeList.Add("L2");
-                LagrangePointModeList.Add("L3");
-                LagrangePointModeList.Add("L4");
-                LagrangePointModeList.Add("L5");
+               
+
+                if (Game.Instance.FlightScene.CraftNode != null && MBGOrbitLine.Instance != null)
+                {
+                    CreateInspectorPanel();
+                    // Create panel only when ready
+                }
+                else
+                {
+                    Debug.LogWarning("Cannot create inspector panel: CraftNode or MBGOrbitLine is null");
+                }
             }
         }
 
-         
+        private void OnChangeReferencePlanetEvent(object sender, string name)
+        {
+            
+        }
         
 
-        
+        private void OnPlayerChangedSoi(ICraftNode craftNode, IPlanetNode planetNode)
+        {
+
+        }
 
         #endregion
         
@@ -100,38 +110,74 @@ namespace Assets.Scripts
         }
         public void ToggleMGBUI()
         { 
-            try
+            if (inspectorPanel == null)
             {
-                inspectorPanel.Visible = !inspectorPanel.Visible;
+                if (Game.Instance.FlightScene?.CraftNode != null)
+                {
+                    CreateInspectorPanel();
+                    if (inspectorPanel== null)
+                    {
+                        Debug.LogWarning("inspectorPanel怎么还是null,你心里没点b数吗");
+                        return;
+                    }
+                    inspectorPanel.Visible = true;
+                }
+                else
+                {
+                    Debug.LogWarning("你toggle个鸡巴");
+                    return;
+                }
             }
-            catch (Exception)
-            {
-                
-                CreateInspectorPanel();
-                inspectorPanel.Visible = !inspectorPanel.Visible;
-            }
+            inspectorPanel.Visible = !inspectorPanel.Visible;
         }
 
         private void CreateInspectorPanel()
         {
+            
             inspectorModel = new InspectorModel("BGM-UI-Settings", "<color=green>多体引力测试UI");
+
+            // Dropdown for Current Planet Reference
             inspectorModel.Add(new DropdownModel(
                 "当前星球参考系",
-                () => Game.Instance.FlightScene.CraftNode == null
-                    ? "你妈的这个地方null了"
-                    : MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name,
-                value => MBGOrbitLine.MBGOrbitLineChangeReference(value),
+                () =>
+                {
+                    if (Game.Instance?.FlightScene?.CraftNode == null)
+                        return "CraftNode is null";
+                    if (MBGOrbitLine.Instance == null || MBGOrbitLine.Instance.GetCurrentPlanet()?.Planet == null)
+                        return "No planet available";
+                    return MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name;
+                },
+                value =>
+                {
+                    MBGOrbitLine.MBGOrbitLineChangeReference(value);
+                    
+                },
                 this.PlanetNameList));
-            GroupModel groupModelLagrangePoint = new GroupModel("拉格朗日点设置");
-            groupModelLagrangePoint.Add(new DropdownModel(
+
+            
+            // Dropdown for Lagrange Point Mode
+            inspectorModel.Add(new DropdownModel(
                 "拉格朗日点模式",
-                () => Game.Instance.FlightScene.CraftNode == null
-                    ? "你妈的这个地方null了"    
-                    : GetCurrentLagrangePointMode(MBGOrbitLine.Instance.GetCurrentPlanet().type),
-                value =>SetLagrangePointMode(value),
+                () =>
+                {
+                    if (Game.Instance?.FlightScene?.CraftNode == null)
+                        return "CraftNode is null";
+                    if (MBGOrbitLine.Instance == null)
+                        return "MBGOrbitLine is null";
+                    var currentPlanet = MBGOrbitLine.Instance?.GetCurrentPlanet();
+                    if (currentPlanet == null)
+                        return "No planet available";
+                    return "TEST"; //MBGOrbitLine.Instance.GetLagrangeReferenceType().ToString();
+                },
+                value =>
+                {
+                    Debug.LogFormat("LagrangePointModeList set to: " + value);
+                    if (value == null)
+                        return;
+                    SetLagrangePointMode(value);
+                },
                 this.LagrangePointModeList));
             
-            inspectorModel.AddGroup(groupModelLagrangePoint);
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
                 PanelWidth = 400,
@@ -139,54 +185,62 @@ namespace Assets.Scripts
             });
         }
 
-        private string GetCurrentLagrangePointMode(GeneralizedPlanetType e)
-        {
-            if(MBGOrbitLine.Instance.GetCurrentPlanet().isSun)
-                return "无";
-            switch (e)
-            {
-                case GeneralizedPlanetType.Planet:
-                    return "无";
-                case GeneralizedPlanetType.L1:
-                    return $"{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Parent.Name}--{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name} L1";
-                case GeneralizedPlanetType.L2:
-                    return $"{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Parent.Name}--{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name} L2";
-                case GeneralizedPlanetType.L3:
-                    return $"{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Parent.Name}--{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name} L3";
-                case GeneralizedPlanetType.L4:
-                    return $"{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Parent.Name}--{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name} L4";
-                case GeneralizedPlanetType.L5:
-                    return $"{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Parent.Name}--{MBGOrbitLine.Instance.GetCurrentPlanet().Planet.Name} L5";
-            }
-            return "NULL(几把的这里歇逼了)";
-        }
+        
 
         private void SetLagrangePointMode(string value)
         {
-            if (MBGOrbitLine.Instance.GetCurrentPlanet().isSun)
+            try
             {
-                return;
+                if (value==("L1"))
+                {
+                    Debug.Log("Set L1");
+                    MBGOrbitLine.ChangeLPointType(1);
+                    Debug.Log("Set L1 success");
+                    return;
+                }
+
+                if (value == ("L2"))
+                {
+                    Debug.Log("Set L2");
+                    MBGOrbitLine.ChangeLPointType(2);
+                    Debug.Log("Set L2 success");
+                    return; 
+                }
+                if (value == ("L3"))
+                {
+                    Debug.Log("Set L3");
+                    MBGOrbitLine.ChangeLPointType(3);
+                    Debug.Log("Set L3 success");
+                    return;
+                }
+
+                if (value == ("L4"))
+                {
+                    Debug.Log("Set L4");
+                    MBGOrbitLine.ChangeLPointType(4);
+                    Debug.Log("Set L4 success");
+                    return;
+                }
+                if (value == ("L5"))
+                {
+                    Debug.Log("Set L5");
+                    MBGOrbitLine.ChangeLPointType(5);
+                    Debug.Log("Set L5 success");
+                    return;
+                }
+
+                else
+                {
+                    Debug.Log("Set Default");
+                    MBGOrbitLine.ChangeLPointType(0);
+                    Debug.Log("Set Default success");
+                    return;
+                }
             }
-            switch (value)
+            catch (Exception)
             {
-                case "无":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.Planet);
-                    break;
-                case "L1":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.L1);
-                    break;
-                case "L2":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.L2);
-                    break;
-                case "L3":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.L3);
-                    break;
-                case "L4":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.L4);
-                    break;
-                case "L5":
-                    MBGOrbitLine.Instance.ChangeLPointTypeMethod(GeneralizedPlanetType.L5);
-                    break;
+                Debug.Log("Set Default,但是这他妈不正常");
+                MBGOrbitLine.ChangeLPointType(0);
             }
         }
     }
