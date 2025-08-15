@@ -26,6 +26,7 @@ using Vectrosity;
 using Assets.Scripts.Flight.MapView;
 using ModApi.Common.UI;
 using Assets.Scripts.Career.Contracts.Requirements;
+using ModApi.Common.Extensions;
 
 //当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），////将轨道点火节点等功能一律关闭
 //轨道特殊点（包括与行星的撞击点）暂不启用
@@ -383,8 +384,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 			NodeAdder.transform.SetParent(base.transform);
 			NodeAdder.layer = base.gameObject.layer;
 			NodeAdder.AddComponent<GraphicRaycaster>();
-            
-			Canvas canvas = NodeAdder.AddComponent<Canvas>();
+
+            Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
 			canvas.overrideSorting = true;
 			canvas.sortingOrder = -5;
 			canvas.renderMode = RenderMode.ScreenSpaceOverlay;
