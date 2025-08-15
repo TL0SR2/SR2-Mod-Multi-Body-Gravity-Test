@@ -16,6 +16,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             State = state;
             Time = time;
         }
+        public MBGOrbitPoint()
+        {
+            State = new P_V_Pair();
+            Time = 0;
+        }
         public MBGOrbitPoint(IOrbitPoint point)
         {
             State = new P_V_Pair(point.Position, point.Velocity);
