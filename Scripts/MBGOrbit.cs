@@ -390,6 +390,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _LongPredictionRatio = value;
         }
 
+        public static void SetMaxLongRangeTime(double value)
+        {
+            _MaxLongRangeCalculateTime = value;
+        }
+
         public MBGOrbitPointSet GetMBGOrbitPointSet()
         {
             return new MBGOrbitPointSet(MBG_PointList);
@@ -420,6 +425,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private static double _defaultDurationTime = 60;
 
         private static double _LongPredictionRatio = 500;
+
+        private static double _MaxLongRangeCalculateTime = 360000;
 
         public static double CurrentTime
         {

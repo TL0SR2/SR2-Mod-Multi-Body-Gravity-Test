@@ -57,6 +57,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Material lineMaterial = UnityEngine.Object.Instantiate<Material>(_orbitLineMaterial);
 
                 MBGOrbitLine MBGOrbitLine = MBGOrbitLine.Create(__instance.Ioc, __instance.MapViewContext, __instance.OrbitInfo.OrbitNode, __instance.Data, UiUtils.GetSortedOrbitLineColor(0), "PlayerOrbit", __instance.Camera, lineMaterial);
+                if (__instance is MapPlayerCraft)
+                {
+                    MBGOrbitLine.isPlayer = true;
+                }
+                else
+                {
+                    MBGOrbitLine.isPlayer = false;
+                }
+                //此处也许可能出现bug：如果飞行器类型转换，会怎么样喵~？
+                //暂时忽略上述隐患
                 MapCraft_PostScript_Dic[__instance].MBGOrbitLine = MBGOrbitLine;
             }
 

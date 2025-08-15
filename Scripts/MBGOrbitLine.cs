@@ -26,9 +26,9 @@ using Vectrosity;
 using Assets.Scripts.Flight.MapView;
 using Assets.Scripts.Flight.UI;
 
-//当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），将轨道点火节点等功能一律关闭
+//当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），////将轨道点火节点等功能一律关闭
 //轨道特殊点（包括与行星的撞击点）暂不启用
-
+//轨道点火节点绝赞开发中喵——（大虚）
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -167,13 +167,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void OnHoverEnter(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
         //光标扫过对象【进入状态】时触发的方法
         {
-            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Enter log");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Enter log");
         }
 
         public void OnHoverExit(OrbitInteractionScript source, OrbitInteractionScript.OrbitCursorInfo pointInfo)
         //光标扫过对象【离开状态】时触发的方法
         {
-            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Exit log");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Exit log");
             OrbitHoveredWithDelay = false;
         }
 
@@ -181,7 +181,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //光标扫过对象【停留于对象上】时触发的方法
         //下面的代码与点火计划节点有关。
         {
-            Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Stay log");
+            //Debug.Log("TL0SR2 MBG OrbitLine -- On Hover Stay log");
             if (!_playerCraft.PlayerCraft.ManeuverNodeManager.AnyItemsBeingHoveredWhichPreventManeuverNodeAdder && (double)pointInfo.HoverTime > 0.25)
             {
                 OrbitHoveredWithDelay = true;
@@ -198,6 +198,33 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 cameraFocusableDestroyed(this);
             }
             _cameraFocusableDestroyed = null;
+        }
+        public void Update()
+        {
+            if (isPlayer)
+            {
+                Ray mouseRay = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
+                Vector3d StartPoint = mouseRay.origin;
+                Vector3d Direction = mouseRay.direction;
+                double distance = double.PositiveInfinity;
+                Vector3d Targetpoint = new Vector3d();
+                for (int i = 0; i < _vectrocityLine.points3.Count - 1; i++)
+                {
+                    Vector3d point = _vectrocityLine.points3[i];
+                    MBGMath_CaculationMethod.GetClosetPoint(CoordinateConverter.ConvertSolarToMapView(point), StartPoint, Direction, out double Distance);
+                    if (Distance <= 1000 && Distance < distance)
+                    {
+                        distance = Distance;
+                        Targetpoint = point;
+                    }
+                }
+                if (!double.IsPositiveInfinity(distance))
+                {
+                    this._nodeAdderGraphicContainer.transform.position = (Vector3)CoordinateConverter.ConvertSolarToMapView(Targetpoint);
+                    this._addNodeIcon.enabled = true;
+                }
+                else this._addNodeIcon.enabled = false;
+            }
         }
 
         /*
@@ -333,6 +360,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _lineMaterial = lineMaterial;
             base.Color = color;
             base.Selectable = true;
+            GameObject NodeAdder = new GameObject("NodeAdder");
+			NodeAdder.transform.SetParent(base.transform);
+			NodeAdder.layer = base.gameObject.layer;
+			NodeAdder.AddComponent<GraphicRaycaster>();
+			this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
+			this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
+			this._nodeAdderGraphicContainer.layer = base.gameObject.layer;
+			this._addNodeIcon = new GameObject("AddIcon").AddComponent<Image>();
+			this._addNodeIcon.sprite = UiUtils.LoadIconSprite("Add");
+			this._addNodeIcon.raycastTarget = true;
+			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
+			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
+			this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
+			this._addNodeIcon.gameObject.layer = base.gameObject.layer;
+			this._addNodeIcon.enabled = false;
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 2");
@@ -758,6 +800,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //暂不使用，大概
         Renderer _orbitLineRenderer;
         //y用于渲染轨道线的渲染器
+        
+		private Image _addNodeIcon;
+        //增加点火节点的图标
+        
+		private GameObject _nodeAdderGraphicContainer;
+
+        public bool isPlayer;
 
         public override bool DisplayManeuverNodeAdderOnMouseHover => true;
         //是否允许在鼠标经过时显示增加点火点的图标

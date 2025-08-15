@@ -31,9 +31,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             public static void Postfix(MapPlayerCraft __instance)
             {
+                /*
                 __instance.OrbitInteractionScript.HoverEnter += MBGPatch_MapCraft.MapCraft_PostScript_Dic[__instance].MBGOrbitLine.OnHoverEnter;
                 __instance.OrbitInteractionScript.HoverExit += MBGPatch_MapCraft.MapCraft_PostScript_Dic[__instance].MBGOrbitLine.OnHoverExit;
                 __instance.OrbitInteractionScript.HoverStay += MBGPatch_MapCraft.MapCraft_PostScript_Dic[__instance].MBGOrbitLine.OnHoverStay;
+                */
             }
 
         }

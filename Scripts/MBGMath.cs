@@ -883,8 +883,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return Quaterniond.AngleAxis(DegAngle, Axis) * InputVec;
         }
 
-        
-        public static Vector3d GetLagrangePointPosition(Vector3d RaletivePosition, GeneralizedPlanetType type ,double M,double m,Vector3d RaletiveVelocity)
+
+        public static Vector3d GetLagrangePointPosition(Vector3d RaletivePosition, GeneralizedPlanetType type, double M, double m, Vector3d RaletiveVelocity)
         //输入行星相对于母星的坐标，输入拉格朗日点类型，输入子母星质量输入子星相对母星的速度，得到拉格朗日点的坐标
         //注：之所以要输入相对速度，其用途是在计算拉格朗日L4、L5点时用于确定轨道平面。
         {
@@ -909,6 +909,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Debug.LogError($"TL0SR2 MBG Math -- GetLagrangePointPosition -- Type Error  Error input {type}");
                     return new Vector3d(0, 0, 0);
             }
+        }
+
+        public static Vector3d GetClosetPoint(Vector3d point, Vector3d StartPoint, Vector3d direction, out double Distance, bool isRay = true)
+        //输入一个空间中的点，输入一个直线起始点和一个直线的方向向量,选择性输入是否为射线（默认为是），输出直线上距离输入点最近的点的坐标,并输出这个最近的距离
+        {
+            double t = Vector3d.Dot(direction, point - StartPoint) / direction.sqrMagnitude;
+            if (isRay && t <= 0)
+            {
+                Distance = (point - StartPoint).magnitude;
+                return StartPoint;
+            }
+            Distance = (point - StartPoint - t * direction).magnitude;
+            return StartPoint + t * direction;
         }
     }
     public struct P_V_Pair

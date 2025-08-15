@@ -34,7 +34,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             public static void Postfix(ManeuverNodeScript __instance)
             {
-                Canvas _infoCanvas = (Canvas)(AccessTools.Field(typeof(ManeuverNodeScript), "_infoCanvas").GetValue(__instance));
+                Canvas _infoCanvas = (Canvas)AccessTools.Field(typeof(ManeuverNodeScript), "_infoCanvas").GetValue(__instance);
                 ManeuverNodeScript_MBGOrbitLine_Dic[__instance].AddPointerNotifications(_infoCanvas);
             }
 
