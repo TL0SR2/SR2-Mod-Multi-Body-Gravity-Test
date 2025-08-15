@@ -534,7 +534,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < num; i++)
                 {
                     MBGOrbitPoint point = MBGOrbitPointSet.GetPoint(i);
-                    if (point.Time >= MBGOrbit.CurrentTime - 10 && i < 16383*2 && i % 2 == 0)
+                    if (point.Time >= MBGOrbit.CurrentTime - 10 && i < 16383 * 2 && i % 2 == 0)
                     {
                         /*
                         if (orbitLine._indexOfPrecisePoint < 0) //&& OrbitMath.TrueAnomalyBetween(orbit2.TrueAnomaly, nuStart, point2.TrueAnomaly, true))
@@ -576,6 +576,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return;
             }
             vectrocityLine.points3.Clear();
+            orbitLine.pointList.Clear();
             //vectrocityLine.Uv2.Clear();
         }
 
@@ -654,6 +655,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     return;
                 }
                 _vectrocityLine.points3.Clear();
+                pointList.Clear();
             }
         }
         internal void SetColor(Color color)
