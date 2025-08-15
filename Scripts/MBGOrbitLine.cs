@@ -37,6 +37,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     //ICameraFocusable是这样一个接口，他包含在地图界面上与可被摄像机聚焦的相关对象
     //IOrbitInteractionEventRecipient是这样一个接口，他管理鼠标光标扫过/停留在对象上时的相关方法
     {
+        public static MBGOrbitLine Instance { get; private set; }
         public static event EventHandler<string> ChangeReferencePlanetEvent;
         public static event EventHandler<GeneralizedPlanetType> ChangeReferenceLPointEvent;
         public override ICameraFocusable AssociatedPlanetCameraFocusable => _playerCraft.PlayerCraft.AssociatedPlanetCameraFocusable;
@@ -680,6 +681,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void ChangeLPointTypeMethod(GeneralizedPlanetType type)
         {
             _currentplanet.type = type;
+        }
+
+        public MBGGeneralizedPlanet GetCurrentPlanet()
+        {
+            return _currentplanet;
         }
 
         public static RotateMode RotateReference = RotateMode.None;
