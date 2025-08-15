@@ -211,7 +211,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < _vectrocityLine.points3.Count - 1; i++)
                 {
                     Vector3d point = _vectrocityLine.points3[i];
-                    MBGMath_CaculationMethod.GetClosetPoint(CoordinateConverter.ConvertSolarToMapView(point), StartPoint, Direction, out double Distance);
+                    MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
                     if (Distance <= 1000 && Distance < distance)
                     {
                         distance = Distance;
@@ -220,7 +220,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
                 if (!double.IsPositiveInfinity(distance))
                 {
-                    this._nodeAdderGraphicContainer.transform.position = (Vector3)CoordinateConverter.ConvertSolarToMapView(Targetpoint);
+                    this._nodeAdderGraphicContainer.transform.position = (Vector3)Targetpoint;
                     this._addNodeIcon.enabled = true;
                 }
                 else this._addNodeIcon.enabled = false;
