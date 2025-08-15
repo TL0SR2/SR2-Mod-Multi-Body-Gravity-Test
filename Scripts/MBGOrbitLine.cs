@@ -24,7 +24,7 @@ using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Vectrosity;
 using Assets.Scripts.Flight.MapView;
-using Assets.Scripts.Flight.UI;
+using ModApi.Common.UI;
 
 //当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），////将轨道点火节点等功能一律关闭
 //轨道特殊点（包括与行星的撞击点）暂不启用
@@ -212,7 +212,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= 1000 && Distance < distance)
+                    if (Distance <= 100 && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
@@ -364,6 +364,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
 			NodeAdder.transform.SetParent(base.transform);
 			NodeAdder.layer = base.gameObject.layer;
 			NodeAdder.AddComponent<GraphicRaycaster>();
+            
+			Canvas canvas = NodeAdder.AddComponent<Canvas>();
+			canvas.overrideSorting = true;
+			canvas.sortingOrder = -5;
+			canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+			canvas.worldCamera = this.Camera;
 			this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
 			this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
 			this._nodeAdderGraphicContainer.layer = base.gameObject.layer;
@@ -375,6 +381,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 			this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
 			this._addNodeIcon.gameObject.layer = base.gameObject.layer;
 			this._addNodeIcon.enabled = false;
+			canvas.gameObject.AddComponent<OverrideSortingOnStart>();
+			Utilities.FixUnityCanvasSortingBug(canvas);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 2");
