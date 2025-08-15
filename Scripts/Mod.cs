@@ -44,6 +44,16 @@ namespace Assets.Scripts
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
         }
 
+        public override void OnModLoaded()
+        {
+            base.OnModLoaded();
+
+            GameObject MBGUIObj = new GameObject("TL0SR2 MBG UI GameObject");
+            MBGUIObj.AddComponent<MBGUserInterface>();
+            GameObject.DontDestroyOnLoad(MBGUIObj);
+            MBGUIObj.SetActive(true);
+        }
+
         public static void CodeAnnotation(string str)
         {
             string temp = str += "Code Annotation doesn't do anything!";
