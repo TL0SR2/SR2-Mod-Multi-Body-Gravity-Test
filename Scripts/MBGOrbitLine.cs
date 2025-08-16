@@ -213,7 +213,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 MBGOrbitPoint orbitPoint = new MBGOrbitPoint();
                 for (int i = 0; i < pointList.Count - 1; i++)
                 {
-                    Vector3d point = CoordinateConverter.ConvertSolarToMapView(pointList[i].State.Position);
+                    Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
                     if (Distance <= 100 && Distance < distance)
                     {
