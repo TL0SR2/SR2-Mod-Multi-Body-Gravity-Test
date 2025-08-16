@@ -205,6 +205,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (isPlayer)
             {
+			    //this._addNodeIcon.gameObject.layer = GameObjLayer;
+			    //this._nodeAdderGraphicContainer.layer = GameObjLayer;
                 Ray mouseRay = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
                 Vector3d StartPoint = mouseRay.origin;
                 Vector3d Direction = mouseRay.direction;
@@ -228,6 +230,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     this.PointerPoint = orbitPoint;
                     this._addNodeIcon.enabled = true;
                     this.AllowAddNode = true;
+                    double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.01;
+                    this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)size);
+                    this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)size);
 
                 }
                 else
@@ -360,6 +365,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         */
 
+
         protected void Initialize(MapItemData data, Color color, Material lineMaterial, bool isSharedMaterial)
         {
             //base.Initialize(data, color, lineMaterial, isSharedMaterial);
@@ -380,31 +386,32 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _isSharedMaterial = isSharedMaterial;
             _lineMaterial = lineMaterial;
             base.Color = color;
-            base.Selectable = true;
-            GameObject NodeAdder = new GameObject("NodeAdder");
-			NodeAdder.transform.SetParent(base.transform);
-            NodeAdder.layer = gameObject.layer;
-			NodeAdder.AddComponent<GraphicRaycaster>();
-            
+
+            base.Selectable = true;GameObject NodeAdder = new GameObject("MBGNodeAdder");
+            NodeAdder.transform.SetParent(this.transform);
+            NodeAdder.layer = this.gameObject.layer;
+            NodeAdder.AddComponent<GraphicRaycaster>();
+
             Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
             canvas.overrideSorting = true;
             canvas.sortingOrder = -5;
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
-			canvas.worldCamera = this.Camera;
-            
-			this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
-			this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
-			this._nodeAdderGraphicContainer.layer = gameObject.layer;
-			this._addNodeIcon = new GameObject("AddIcon").AddComponent<Image>();
-			this._addNodeIcon.sprite = UiUtils.LoadIconSprite("Add");
-			this._addNodeIcon.raycastTarget = true;
-			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
-			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
-			this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
-			this._addNodeIcon.gameObject.layer = gameObject.layer;
-			this._addNodeIcon.enabled = false;
-			canvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
-			Utilities.FixUnityCanvasSortingBug(canvas);
+            canvas.worldCamera = this.Camera;
+
+            this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
+            this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
+            this._nodeAdderGraphicContainer.layer = this.gameObject.layer;
+            this._addNodeIcon = new GameObject("AddIcon").AddComponent<Image>();
+            this._addNodeIcon.sprite = UiUtils.LoadIconSprite("Add");
+            this._addNodeIcon.raycastTarget = true;
+            this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
+            this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
+            this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
+            this._addNodeIcon.gameObject.layer = this.gameObject.layer;
+            this._addNodeIcon.enabled = false;
+            canvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
+            Utilities.FixUnityCanvasSortingBug(canvas);
+            //ManeuverNodeManagerScript maneuverNodeManagerScript = this.gameObject.GetComponentInParent<ManeuverNodeManagerScript>();
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 2");
@@ -843,6 +850,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public bool isPlayer;
 
+        public int GameObjLayer = 0;
+
         public override bool DisplayManeuverNodeAdderOnMouseHover => true;
         //是否允许在鼠标经过时显示增加点火点的图标
 
@@ -854,6 +863,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public List<MBGOrbitPoint> pointList = new List<MBGOrbitPoint>(){};
         //当前轨道线上显示的节点列表
+
+        //public ManeuverNodeManagerScript maneuverNodeManagerScript;
 
         public enum RotateMode
         {

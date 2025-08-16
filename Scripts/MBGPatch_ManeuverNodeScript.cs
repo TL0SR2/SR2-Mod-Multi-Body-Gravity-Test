@@ -55,6 +55,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 IPlayerCraftProvider playerCraftProvider = ioc.Resolve<IPlayerCraftProvider>(context, false);
                 MapPlayerCraft playerCraft = playerCraftProvider.PlayerCraft;
                 MBGOrbitLine MBGOrbitLine = MBGPatch_MapCraft.MapCraft_PostScript_Dic[playerCraft].MBGOrbitLine;
+                MBGOrbitLine.GameObjLayer = __instance.gameObject.layer;
+                //Debug.Log($"Mane Node Layer {__instance.gameObject.layer}");
                 ManeuverNodeScript_MBGOrbitLine_Dic.Add(__instance, MBGOrbitLine);
                 return true;
             }
