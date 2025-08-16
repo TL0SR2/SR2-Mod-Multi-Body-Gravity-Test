@@ -240,6 +240,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public override void OnPointerClick(PointerEventData eventData)
         {
+            Debug.Log("PointClick");
             //base.OnPointerClick(eventData);
             if (AllowAddNode)
             {
@@ -382,25 +383,25 @@ namespace Assets.Scripts.Flight.Sim.MBG
             base.Selectable = true;
             GameObject NodeAdder = new GameObject("NodeAdder");
 			NodeAdder.transform.SetParent(base.transform);
-			NodeAdder.layer = base.gameObject.layer;
+            NodeAdder.layer = gameObject.layer;
 			NodeAdder.AddComponent<GraphicRaycaster>();
             
             Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
-			//canvas.overrideSorting = true;
-			//canvas.sortingOrder = -5;
-			//canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = -5;
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
 			canvas.worldCamera = this.Camera;
             
 			this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
 			this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
-			this._nodeAdderGraphicContainer.layer = base.gameObject.layer;
+			this._nodeAdderGraphicContainer.layer = gameObject.layer;
 			this._addNodeIcon = new GameObject("AddIcon").AddComponent<Image>();
 			this._addNodeIcon.sprite = UiUtils.LoadIconSprite("Add");
 			this._addNodeIcon.raycastTarget = true;
 			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
 			this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
 			this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
-			this._addNodeIcon.gameObject.layer = base.gameObject.layer;
+			this._addNodeIcon.gameObject.layer = gameObject.layer;
 			this._addNodeIcon.enabled = false;
 			canvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
 			Utilities.FixUnityCanvasSortingBug(canvas);
