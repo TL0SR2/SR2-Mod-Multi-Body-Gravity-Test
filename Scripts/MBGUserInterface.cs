@@ -223,6 +223,8 @@ namespace Assets.Scripts
                     SetRotateReference(value);
                 },
                 this.RotateReferenceList));
+            //增减步长暂时禁用
+            /*
             //步长增减
             var AddStep = new LabelButtonModel("增加步长", b =>
             {
@@ -239,7 +241,22 @@ namespace Assets.Scripts
             MinusStep.Label= "减少步长";
             
             inspectorModel.Add(AddStep);
-            inspectorModel.Add(MinusStep);
+            inspectorModel.Add(MinusStep);*/
+            var AdjustStep = new TextButtonModel("设置步长", b =>
+            {
+                UiSetStep("输入步长<br>" +
+                          "步长越小计算精度越高，但计算时间也越长。<br>你鸡巴の敢瞎输入其他数据类我杀了你"
+                          );
+            });
+            var SetInitRotateAngle = new TextButtonModel("设置初始旋转角", b =>
+            {
+                UiSetInitRotateAngle("输入初始旋转角<br>" +
+                                     "采用旋转模式时的初始旋转角,单位是角度值<br>没事别瞎动这个"
+                );
+            });
+            inspectorModel.Add(AdjustStep);
+            inspectorModel.Add(SetInitRotateAngle);
+            
                 
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
@@ -319,6 +336,39 @@ namespace Assets.Scripts
                     MBGOrbitLine.SetReferenceMode(0);
                     break;
             }
+        }
+
+        private void UiSetStep(string message)
+        {
+            InputDialogScript dialog = Game.Instance.UserInterface.CreateInputDialog();
+            dialog.MessageText = message;
+            dialog.InputText = "0.001";
+            dialog.OkayClicked += (ModApi.Ui.InputDialogScript.InputDialogDelegate) (d =>
+            {
+                d.Close();
+                float result;
+                if (float.TryParse(dialog.InputText, out result))
+                    MBGMath.SetMBGCalculationStep(result);
+                else
+                    //Game.Instance.FlightScene.FlightSceneUI.ShowMessage("Invalid input, it has to be a number.");
+                    Game.Instance.FlightScene.FlightSceneUI.ShowMessage("无效输入，输入必须是数字。");
+            });
+        }
+        private void UiSetInitRotateAngle(string message)
+        {
+            InputDialogScript dialog = Game.Instance.UserInterface.CreateInputDialog();
+            dialog.MessageText = message;
+            dialog.InputText = "0";
+            dialog.OkayClicked += (ModApi.Ui.InputDialogScript.InputDialogDelegate) (d =>
+            {
+                d.Close();
+                float result;
+                if (float.TryParse(dialog.InputText, out result))
+                    MBGOrbitLine.SetRotateInitAngle(result);
+                else
+                    //Game.Instance.FlightScene.FlightSceneUI.ShowMessage("Invalid input, it has to be a number.");
+                    Game.Instance.FlightScene.FlightSceneUI.ShowMessage("你是傻逼吗?，输入必须是数字。");
+            });
         }
     }
 }
