@@ -55,6 +55,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         }
 
+        public static void AddMBGCalculationStep()
+        {
+            _CalculationRealStep += 0.001;
+        }
+        public static void MinusMBGCalculationStep()
+        {
+            if (_CalculationRealStep < 0.001)
+                return;
+            _CalculationRealStep -= 0.001;
+        }
+
         public static void SetMBGCalculationStep(double value)
         {
             _CalculationRealStep = value;

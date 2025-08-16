@@ -223,7 +223,24 @@ namespace Assets.Scripts
                     SetRotateReference(value);
                 },
                 this.RotateReferenceList));
+            //步长增减
+            var AddStep = new LabelButtonModel("增加步长", b =>
+            {
+                MBGMath.AddMBGCalculationStep();
+                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
+            });
+            AddStep.Label= "增加步长";
             
+            var MinusStep = new LabelButtonModel("减少步长", b =>
+            {
+                MBGMath.MinusMBGCalculationStep();
+                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
+            });
+            MinusStep.Label= "减少步长";
+            
+            inspectorModel.Add(AddStep);
+            inspectorModel.Add(MinusStep);
+                
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
                 PanelWidth = 400,
