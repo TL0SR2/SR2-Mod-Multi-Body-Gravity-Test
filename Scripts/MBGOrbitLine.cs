@@ -215,7 +215,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= 100 && Distance < distance)
+                    if (Distance <= 1000 && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
@@ -240,7 +240,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public override void OnPointerClick(PointerEventData eventData)
         {
-            base.OnPointerClick(eventData);
+            //base.OnPointerClick(eventData);
             if (AllowAddNode)
             {
                 Debug.Log($"TL0SR2 MBG OrbitLine -- OnPointerClick -- Test Log  Allow Create Node At position {PointerPoint.State.Position}");
@@ -384,12 +384,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
 			NodeAdder.transform.SetParent(base.transform);
 			NodeAdder.layer = base.gameObject.layer;
 			NodeAdder.AddComponent<GraphicRaycaster>();
-
+            
             Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
-			canvas.overrideSorting = true;
-			canvas.sortingOrder = -5;
-			canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+			//canvas.overrideSorting = true;
+			//canvas.sortingOrder = -5;
+			//canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 			canvas.worldCamera = this.Camera;
+            
 			this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
 			this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
 			this._nodeAdderGraphicContainer.layer = base.gameObject.layer;
