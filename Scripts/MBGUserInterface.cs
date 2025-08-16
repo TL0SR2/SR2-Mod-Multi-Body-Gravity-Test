@@ -27,6 +27,7 @@ namespace Assets.Scripts
         
         public List<string> PlanetNameList { get; private set; } = new List<string>();
         public readonly List<string> LagrangePointModeList = new List<string>(new[] { "无", "L1", "L2", "L3", "L4", "L5" });
+        public readonly List<string> RotateReferenceList = new List<string>(new[] { "无", "自转追随模式", "公转追随模式"});
         
 
         private void Awake()
@@ -117,6 +118,7 @@ namespace Assets.Scripts
                 CreateInspectorPanel();
                 inspectorPanel.Visible = !inspectorPanel.Visible;
             }
+            //吃粑粑去吧鸡巴的,孩子们try-catch太好用了你们知道吗
             /*
             try
             {
@@ -199,16 +201,53 @@ namespace Assets.Scripts
                     SetLagrangePointMode(value);
                 },
                 this.LagrangePointModeList));
+            //轨道绘制旋转模式
+            inspectorModel.Add(new DropdownModel(
+                "轨道绘制旋转模式",
+                () =>
+                {
+                    if (Game.Instance?.FlightScene?.CraftNode == null)
+                        return "CraftNode is null";
+                    if (MBGOrbitLine.Instance == null)
+                        return "MBGOrbitLine is null";
+                    var currentPlanet = MBGOrbitLine.Instance?.GetCurrentPlanet();
+                    if (currentPlanet == null)
+                        return "No planet available";
+                    return "TEST"; //MBGOrbitLine.Instance.GetLagrangeReferenceType().ToString();
+                },
+                value =>
+                {
+                    Debug.LogFormat("Set Rotate Reference: " + value);
+                    if (value == null)
+                        return;
+                    SetRotateReference(value);
+                },
+                this.RotateReferenceList));
+            //步长增减
+            var AddStep = new LabelButtonModel("增加步长", b =>
+            {
+                MBGMath.AddMBGCalculationStep();
+                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
+            });
+            AddStep.Label= "增加步长";
             
+            var MinusStep = new LabelButtonModel("减少步长", b =>
+            {
+                MBGMath.MinusMBGCalculationStep();
+                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
+            });
+            MinusStep.Label= "减少步长";
+            
+            inspectorModel.Add(AddStep);
+            inspectorModel.Add(MinusStep);
+                
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
                 PanelWidth = 400,
                 Resizable = true,
             });
         }
-
         
-
         private void SetLagrangePointMode(string value)
         {
             try
@@ -263,6 +302,22 @@ namespace Assets.Scripts
             {
                 Debug.Log("Set Default,但是这他妈不正常");
                 MBGOrbitLine.ChangeLPointType(0);
+            }
+        }
+
+        private void SetRotateReference(string value)
+        {
+            switch (value)
+            {
+                case "自转追随模式":
+                    MBGOrbitLine.SetReferenceMode(1);
+                    break;
+                case "公转追随模式":
+                    MBGOrbitLine.SetReferenceMode(2);
+                    break;
+                default:
+                    MBGOrbitLine.SetReferenceMode(0);
+                    break;
             }
         }
     }
