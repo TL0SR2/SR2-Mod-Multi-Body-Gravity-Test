@@ -69,7 +69,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} InputSelf Time {MBG_PointList[n].Time}   Time {NTime}");
                     //以下这个部分称为“长期模糊预测”模块。旨在用比较长的步长、比较低的精度来预测出一段更长期的轨迹，便于轨迹线的绘制。默认倍率500.
                     //一般地，长期预测消耗的算力是普通预测的一半
-                    MBGMath.NumericalIntegration(MBG_PointList[n], elapsedTime * Multiplier * _LongPredictionRatio, Multiplier * _LongPredictionRatio * 2, out List<MBGOrbitPoint> LongPointList, true);
+                    MBGMath.NumericalIntegration(MBG_PointList[n], _MaxLongRangeCalculateTime, Multiplier * _LongPredictionRatio * 2, out List<MBGOrbitPoint> LongPointList, true);
                     UpdateList<MBGOrbitPoint>(ref MBG_PointList, LongPointList, n);
                     //警告：结束时间被设置为普通的计算长度结束的时间。长期计算的数据间隔不同，不 应 该 被读取至常规状态喵！！
                     MBGMath.NumericalIntegration(MBG_PointList[n], elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList,false);
@@ -426,7 +426,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static double _LongPredictionRatio = 500;
 
-        private static double _MaxLongRangeCalculateTime = 360000;
+        private static double _MaxLongRangeCalculateTime = 86400;
 
         public static double CurrentTime
         {

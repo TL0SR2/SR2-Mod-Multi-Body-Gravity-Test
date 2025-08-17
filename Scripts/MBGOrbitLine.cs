@@ -234,6 +234,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)size);
                     this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)size);
 
+                    if (UnityEngine.Input.GetMouseButtonDown(0))
+                    {
+                        this.PointerDown(orbitPoint);
+                    }
+
                 }
                 else
                 {
@@ -243,6 +248,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
+
+        public void PointerDown(MBGOrbitPoint point)
+        {
+            Debug.Log($"TL0SR2 MBG OrbitLine Pointer Down  Data Solar position {point.State.Position} Time {point.Time}");
+        }
+        /*
         public override void OnPointerClick(PointerEventData eventData)
         {
             Debug.Log("PointClick");
