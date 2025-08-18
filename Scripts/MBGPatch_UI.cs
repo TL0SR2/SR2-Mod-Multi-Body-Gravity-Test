@@ -5,6 +5,7 @@ using UnityEngine;
 namespace Assets.Scripts
 {
     //狗日的啥卵jundroo这个地方自己写的有问题没更新害的我只能用harmony了
+    //总之这个patch就敢一件事情:那就是用harmonyLib让MBGUserInterface里面新建的按钮的onClick能正常工作
         [HarmonyPatch(typeof(NavPanelController), "LayoutRebuilt")]
         class LayoutRebuiltPatch
         {

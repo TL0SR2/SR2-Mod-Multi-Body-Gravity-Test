@@ -107,6 +107,9 @@ namespace Assets.Scripts
                         //贴图先用原版的
                         new XAttribute("sprite", "Ui/Sprites/Flight/IconMapView"))));
         }
+        //已知bug:因为我这个b偷懒直接try-catch太好用了你们知道吗所以会出现再次toggleUI的时候这个鸡巴玩意的数值显示会重置的bug
+        //反正待会在修
+        //我操什么叫做这个就是released的时候UI???
         public void ToggleMGBUI()
         {
             try
@@ -118,40 +121,8 @@ namespace Assets.Scripts
                 CreateInspectorPanel();
                 inspectorPanel.Visible = !inspectorPanel.Visible;
             }
-            //吃粑粑去吧鸡巴的,孩子们try-catch太好用了你们知道吗
-            /*
-            try
-            {
-                if (inspectorPanel == null)
-                {
-                    if (Game.Instance.FlightScene?.CraftNode != null)
-                    {
-                        CreateInspectorPanel();
-                        if (inspectorPanel== null)
-                        {
-                            Debug.LogWarning("inspectorPanel怎么还是null,你心里没点b数吗");
-                            return;
-                        }
-                    
-                        inspectorPanel.Visible = true;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Craft node都没有,你toggle个鸡巴");
-                        return;
-                    }
-                }
-                if (inspectorPanel != null)
-                {
-                    inspectorPanel.Visible = !inspectorPanel.Visible;
-                }
-            }
-            catch (Exception )
-            {
-                CreateInspectorPanel();
-                inspectorPanel.Visible = !inspectorPanel.Visible;
-                
-            }*/
+            //不开玩笑,处于一种很诡异的原因,你去写和null比较的方法啥的反而出现更多bug,为了项目尽快推进直接使用try-catch反而能让UI部分先跑起来
+            
             
         }
 
@@ -223,25 +194,7 @@ namespace Assets.Scripts
                     SetRotateReference(value);
                 },
                 this.RotateReferenceList));
-            //增减步长暂时禁用
-            /*
-            //步长增减
-            var AddStep = new LabelButtonModel("增加步长", b =>
-            {
-                MBGMath.AddMBGCalculationStep();
-                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
-            });
-            AddStep.Label= "增加步长";
             
-            var MinusStep = new LabelButtonModel("减少步长", b =>
-            {
-                MBGMath.MinusMBGCalculationStep();
-                Game.Instance.FlightScene.FlightSceneUI.ShowMessage($"步长设置为{MBGMath._CalculationRealStep}",true,5f);
-            });
-            MinusStep.Label= "减少步长";
-            
-            inspectorModel.Add(AddStep);
-            inspectorModel.Add(MinusStep);*/
             var AdjustStep = new TextButtonModel("设置步长", b =>
             {
                 UiSetStep("输入步长<br>" +

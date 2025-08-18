@@ -24,6 +24,7 @@ namespace Assets.Scripts
             typeof(NavballRendererControllerScript).GetMethod("Initialise",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
+        //懒狗,虽然但是还有拉点系我还没写
         private static Color GetColor(bool isTop)
         {
             var _navSphere = Game.Instance.FlightScene.FlightSceneUI.NavSphere;
