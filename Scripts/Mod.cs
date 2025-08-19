@@ -59,6 +59,7 @@ namespace Assets.Scripts
 
             GameObject MBGUIObj = new GameObject("TL0SR2 MBG UI GameObject");
             MBGUIObj.AddComponent<MBGUserInterface>();
+            MBGUIObj.AddComponent<MBGBurnNodeUI>();
             GameObject.DontDestroyOnLoad(MBGUIObj);
             MBGUIObj.SetActive(true);
         }

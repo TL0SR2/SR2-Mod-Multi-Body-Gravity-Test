@@ -112,6 +112,8 @@ namespace Assets.Scripts
         //我操什么叫做这个就是released的时候UI???
         public void ToggleMGBUI()
         {
+            //已禁用
+            //MBGBurnNodeUI.Instance.Toggle();
             try
             {
                 inspectorPanel.Visible = !inspectorPanel.Visible;
