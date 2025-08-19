@@ -34,7 +34,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _drawModeProvider = ioc.Resolve<IDrawModeProvider>(_mapViewContext, false);
             _playerCraftProvider = ioc.Resolve<IPlayerCraftProvider>(_mapViewContext, false);
             CoordinateConverter = ioc.Resolve<IMapViewCoordinateConverter>(_mapViewContext, false);
-            orbit.orbitInfo = this;
+            if (orbit != null)
+            {
+                orbit.orbitInfo = this;
+            }
         }
         public double EndTime => double.PositiveInfinity;
         public int Id => _orbitLine.Id;
