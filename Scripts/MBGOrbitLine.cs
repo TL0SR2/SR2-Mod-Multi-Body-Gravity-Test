@@ -304,7 +304,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
         {
-            
+            int n = this.MBGOrbit.GetPVNFromTime(Time, out _, out _);
+            MBGManeuverNode maneuverNode = new MBGManeuverNode(this, MBGOrbit.MBG_PointList[n], DeltaV);
+            Debug.Log($"Test Add ManeuverNode at n {n} DeltaV {DeltaV}");
+            ConfirmManeuverNode(maneuverNode);
         }
 
         public void ConfirmManeuverNode(MBGManeuverNode maneuverNode)
