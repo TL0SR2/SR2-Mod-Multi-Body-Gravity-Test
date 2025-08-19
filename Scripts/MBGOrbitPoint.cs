@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ModApi.Flight.Sim;
+using UnityEngine;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -10,6 +11,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         public P_V_Pair State;
         public double Time;
+
+        public Vector3d ThrustAcc = new Vector3d(0,0,0);
 
         public MBGOrbitPoint(P_V_Pair state, double time)
         {

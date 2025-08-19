@@ -252,6 +252,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void PointerDown(MBGOrbitPoint point)
         {
             Debug.Log($"TL0SR2 MBG OrbitLine Pointer Down  Data Solar position {point.State.Position} Time {point.Time}");
+            AddManeuverNode(point);
         }
         /*
         public override void OnPointerClick(PointerEventData eventData)
@@ -294,6 +295,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
             t.name = string.Format("{0}({1})", name, t.GetInstanceID());
             t.Initialize(data, color, lineMaterial, isSharedMaterial);
             return t;
+        }
+
+        public void AddManeuverNode(MBGOrbitPoint orbitPoint)
+        {
+
+        }
+
+        public void TestAddManeuverNode(double Time, Vector3d DeltaV)
+        {
+            
+        }
+
+        public void ConfirmManeuverNode(MBGManeuverNode maneuverNode)
+        {
+            MBGOrbit.AddManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode.MaxAcc * maneuverNode.DeltaV.normalized, maneuverNode.ThrustTime);
         }
 
         public override void OnBeforeCameraPositioned()

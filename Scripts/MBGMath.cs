@@ -2,12 +2,20 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 //using MathNet.Numerics.LinearAlgebra.Double;
 //using MathNet.Numerics.LinearAlgebra;
 namespace Assets.Scripts.Flight.Sim.MBG
 {
     public static class MBGMath
     {
+        /*
+
+        public MBGMath(MBGOrbit orbit)
+        {
+            _orbit = orbit;
+        }
+        */
         public static bool FloatEqual(double num1, double num2)
         {
             return Math.Abs(num1 - num2) <= 1E-9;
@@ -37,10 +45,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
+        public static void NumericalIntegration(List<MBGOrbitPoint> PointList,int StartN, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
         {
-            P_V_Pair PVPair = startPoint.State;
-            double time = startPoint.Time;
+            P_V_Pair PVPair = PointList[StartN].State;
+            double time = PointList[StartN].Time;
             CurrentTimeMultiplier = Multiplier;
             double Step = LongPrediction ? _CalculationRealStep * Multiplier : _calculationStepTime;
             int CaculateStep = (int)Math.Floor(elapsedTime / Step);
@@ -49,7 +57,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(new MBGOrbitPoint(PVPair, time));
-                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, GravityFunc);
+                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, (time, Position) => GravityFunc(time, Position, MBGOrbit.GetThrustAcc(PointList, time)));
                 time += Step;
             }
 
@@ -79,6 +87,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static double CurrentTimeMultiplier = 1;
 
+        //private MBGOrbit _orbit;
+
         public static double _CalculationRealStep { get; private set; } = 0.01;
 
         public static double _calculationStepTime
@@ -104,12 +114,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(input_P_V.Velocity, GravityAcc);
         };
 
-        public static Func<double, Vector3d, Vector3d> GravityFunc = (time, inputPosition) =>
+        public static Func<double, Vector3d, Vector3d, Vector3d> GravityFunc = (time, inputPosition, Acc) =>
         //给出万有引力加速度函数
         {
-            return MBGOrbit.CalculateGravityAtTime(inputPosition, time);
+            return MBGOrbit.CalculateGravityAtTime(inputPosition, time) + Acc;
         };
-
         public static Func<double, Vector3d, List<Vector3d>> GravityJacobiFunc = (time, inputPosition) =>
         //给出万有引力加速度函数的空间参量的雅可比矩阵，输出List<Vector3d>共3项，从第0到2项依次为对位置的x,y,z坐标的偏导
         {

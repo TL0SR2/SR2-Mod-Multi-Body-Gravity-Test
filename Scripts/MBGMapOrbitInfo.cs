@@ -34,6 +34,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _drawModeProvider = ioc.Resolve<IDrawModeProvider>(_mapViewContext, false);
             _playerCraftProvider = ioc.Resolve<IPlayerCraftProvider>(_mapViewContext, false);
             CoordinateConverter = ioc.Resolve<IMapViewCoordinateConverter>(_mapViewContext, false);
+            orbit.orbitInfo = this;
         }
         public double EndTime => double.PositiveInfinity;
         public int Id => _orbitLine.Id;
@@ -46,6 +47,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public void SetOrbit(MBGOrbit mbgOrbit)
         {
             MBGOrbit = mbgOrbit;
+            mbgOrbit.orbitInfo = this;
         }
 
         public void DestroyOrbitLine()
@@ -90,7 +92,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private IPlayerCraftProvider _playerCraftProvider;
         private IMapViewContext _mapViewContext;
         public MBGOrbit MBGOrbit { get; private set; }
-        private MBGOrbitLine _orbitLine;
+        public MBGOrbitLine _orbitLine { get; private set; }
         public MBGOrbitPoint PlanetIntersection;
         //如果与行星撞击，给出撞击点
     }
