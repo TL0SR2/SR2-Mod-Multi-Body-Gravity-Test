@@ -275,10 +275,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public Vector3d GetThrustAcc(double time)
         {
             int n = GetPVNFromTime(time, out double Multiplier, out double T1);
-            double T2 = MBG_PointList[n + 1].Time;
-            Vector3d A1 = MBG_PointList[n].ThrustAcc;
-            Vector3d A2 = MBG_PointList[n + 1].ThrustAcc;
-            return MBGMath.LinearInterpolation(A1, A2, (time - T1) / (T2 - T1));
+            if (n < MBG_PointList.Count - 1)
+            {
+                double T2 = MBG_PointList[n + 1].Time;
+                Vector3d A1 = MBG_PointList[n].ThrustAcc;
+                Vector3d A2 = MBG_PointList[n + 1].ThrustAcc;
+                return MBGMath.LinearInterpolation(A1, A2, (time - T1) / (T2 - T1));
+            }
+            else
+            {
+                return MBG_PointList[n].ThrustAcc;
+            }
         }
         public static Vector3d GetThrustAcc(List<MBGOrbitPoint> points,double time)
         {
