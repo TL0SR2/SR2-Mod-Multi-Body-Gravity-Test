@@ -299,7 +299,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 foreach (var Pair in Dic)
                 {
-                    if ((i == 0 && time < Pair.Key) || (i == Dic.Count - 1 && time > Pair.Key))
+                    if (((i == 0) && (time < Pair.Key)) || ((i >= Dic.Count - 1) && (time > Pair.Key)))
                     {
                         return new Vector3d();
                     }
@@ -310,7 +310,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     TempPair = Pair;
                     i++;
                 }
-                Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return");
+                Debug.LogError($"TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return -- Detailed Data i {i} Count {Dic.Count}");
                 return TempPair.Value;
             }
             catch (Exception e)
