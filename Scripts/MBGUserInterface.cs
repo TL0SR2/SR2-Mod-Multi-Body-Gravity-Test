@@ -113,7 +113,7 @@ namespace Assets.Scripts
         public void ToggleMGBUI()
         {
             //已禁用
-            //MBGBurnNodeUI.Instance.Toggle();
+            MBGBurnNodeUI.Instance.Toggle();
             try
             {
                 inspectorPanel.Visible = !inspectorPanel.Visible;
