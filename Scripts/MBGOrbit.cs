@@ -295,23 +295,33 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public static Vector3d GetThrustAcc(SortedDictionary<double, Vector3d> Dic, double time)
         {
-            int i = 0;
-            KeyValuePair<double, Vector3d> TempPair = new KeyValuePair<double, Vector3d>();
-            foreach (var Pair in Dic)
+                int i = 0;
+                KeyValuePair<double, Vector3d> TempPair = new KeyValuePair<double, Vector3d>();
+            try
             {
-                if ((i == 0 && time < Pair.Key) || (i == Dic.Count - 1 && time > Pair.Key))
+                foreach (var Pair in Dic)
                 {
-                    return new Vector3d();
+                    if ((i == 0 && time < Pair.Key) || (i == Dic.Count - 1 && time > Pair.Key))
+                    {
+                        return new Vector3d();
+                    }
+                    if (time < Pair.Key)
+                    {
+                        return MBGMath.LinearInterpolation(TempPair.Value, Pair.Value, TempPair.Key, Pair.Key, time);
+                    }
+                    TempPair = Pair;
+                    i++;
                 }
-                if (time < Pair.Key)
-                {
-                    return MBGMath.LinearInterpolation(TempPair.Value, Pair.Value, TempPair.Key, Pair.Key, time);
-                }
-                TempPair = Pair;
-                i++;
+                Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return");
+                return TempPair.Value;
             }
-            Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return");
-            return TempPair.Value;
+            catch (Exception e)
+            {
+                Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Catch Exception");
+                Debug.LogException(e);
+                Debug.LogError($"Detailed Data:  i {i}  Count {Dic.Count}");
+                return new Vector3d();
+            }
         }
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
