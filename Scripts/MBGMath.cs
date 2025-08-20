@@ -28,6 +28,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             return (1 - ratio) * vec1 + ratio * vec2;
         }
+        public static Vector3d LinearInterpolation(Vector3d vec1, Vector3d vec2, double T1, double T2, double t)
+        {
+            return ((T2 - t) * vec1 + (t - T1) * vec2) / (T2 - T1);
+        }
 
 
         public static P_V_Pair HermiteInterpolation(P_V_Pair vec1, P_V_Pair vec2, double T1, double T2, double t)
@@ -45,10 +49,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(List<MBGOrbitPoint> PointList,int StartN, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint,SortedDictionary<double, Vector3d> T_TAC_Dic, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
         {
-            P_V_Pair PVPair = PointList[StartN].State;
-            double time = PointList[StartN].Time;
+            P_V_Pair PVPair = startPoint.State;
+            double time = startPoint.Time;
             CurrentTimeMultiplier = Multiplier;
             double Step = LongPrediction ? _CalculationRealStep * Multiplier : _calculationStepTime;
             int CaculateStep = (int)Math.Floor(elapsedTime / Step);
@@ -57,7 +61,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(new MBGOrbitPoint(PVPair, time));
-                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, (time, Position) => GravityFunc(time, Position, MBGOrbit.GetThrustAcc(PointList, time)));
+                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, (time, Position) => GravityFunc(time, Position, MBGOrbit.GetThrustAcc(T_TAC_Dic, time)));
                 time += Step;
             }
 

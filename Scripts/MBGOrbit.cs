@@ -9,6 +9,7 @@ using System.Linq;
 using ModApi.Flight;
 using Assets.Scripts.Flight.UI;
 using System.Diagnostics.SymbolStore;
+using UnityEditor.Experimental.GraphView;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -24,6 +25,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
+            Time_ThrustAcc_Dic.Add(startTime, new Vector3d());
             //MathCalculator = new MBGMath(this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
             try
@@ -70,10 +72,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Start Calculation. Data:  n {n}  Total Count {MBG_PointList.Count}  Input PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} InputSelf Time {MBG_PointList[n].Time}   Time {NTime}");
                     //以下这个部分称为“长期模糊预测”模块。旨在用比较长的步长、比较低的精度来预测出一段更长期的轨迹，便于轨迹线的绘制。默认倍率500.
                     //一般地，长期预测消耗的算力是普通预测的一半
-                    MBGMath.NumericalIntegration(MBG_PointList,n, _MaxLongRangeCalculateTime, Multiplier * _LongPredictionRatio * 2, out List<MBGOrbitPoint> LongPointList, true);
+                    MBGMath.NumericalIntegration(MBG_PointList[n],Time_ThrustAcc_Dic, _MaxLongRangeCalculateTime, Multiplier * _LongPredictionRatio * 2, out List<MBGOrbitPoint> LongPointList, true);
                     UpdateList<MBGOrbitPoint>(ref MBG_PointList, LongPointList, n);
                     //警告：结束时间被设置为普通的计算长度结束的时间。长期计算的数据间隔不同，不 应 该 被读取至常规状态喵！！
-                    MBGMath.NumericalIntegration(MBG_PointList, n, elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList, false);
+                    MBGMath.NumericalIntegration(MBG_PointList[n], Time_ThrustAcc_Dic, elapsedTime * Multiplier, Multiplier, out List<MBGOrbitPoint> PointList, false);
                     UpdateList<MBGOrbitPoint>(ref MBG_PointList, PointList, n);
                     //DebugLogPVList(n, 10);
                     //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PointList.Count}");
@@ -261,14 +263,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
+        public static void ReplenishList(ref List<MBGOrbitPoint> points, int n)
+        //将列表补充到第N项不为空的状态
+        {
+            
+        }
+
         public void AddManeuverNode(double startTime, Vector3d ThrustAcc, double ThrustTime)
         {
-            int n1 = GetPVNFromTime(startTime, out _, out _);
-            int n2 = GetPVNFromTime(startTime + ThrustTime, out _, out _);
-            for (int i = n1; i <= n2; i++)
-            {
-                MBG_PointList[i].ThrustAcc = ThrustAcc;
-            }
+            Time_ThrustAcc_Dic.Add(startTime - EngineActivateTime, new Vector3d());
+            Time_ThrustAcc_Dic.Add(startTime, ThrustAcc);
+            Time_ThrustAcc_Dic.Add(startTime + ThrustTime, ThrustAcc);
+            Time_ThrustAcc_Dic.Add(startTime + ThrustTime + EngineActivateTime, new Vector3d());
             ForceReCalculation();
         }
 
@@ -287,22 +293,25 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return MBG_PointList[n].ThrustAcc;
             }
         }
-        public static Vector3d GetThrustAcc(List<MBGOrbitPoint> points,double time)
+        public static Vector3d GetThrustAcc(SortedDictionary<double, Vector3d> Dic, double time)
         {
-            int n = 0;
-            for (int i = points.Count - 1; i >= 0; i--)
+            int i = 0;
+            KeyValuePair<double, Vector3d> TempPair = new KeyValuePair<double, Vector3d>();
+            foreach (var Pair in Dic)
             {
-                if (points[i].Time <= time)
+                if ((i == 0 && time < Pair.Key) || (i == Dic.Count - 1 && time > Pair.Key))
                 {
-                    n = i;
-                    break;
+                    return new Vector3d();
                 }
+                if (time < Pair.Key)
+                {
+                    return MBGMath.LinearInterpolation(TempPair.Value, Pair.Value, TempPair.Key, Pair.Key, time);
+                }
+                TempPair = Pair;
+                i++;
             }
-            double T1 = points[n].Time;
-            double T2 = points[n + 1].Time;
-            Vector3d A1 = points[n].ThrustAcc;
-            Vector3d A2 = points[n + 1].ThrustAcc;
-            return MBGMath.LinearInterpolation(A1, A2, (time - T1) / (T2 - T1));
+            Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return");
+            return TempPair.Value;
         }
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
@@ -496,6 +505,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public int CaculationNum = 0;
         //指定当前轨道已经经过了多少次重新计算
+
+        private SortedDictionary<double, Vector3d> Time_ThrustAcc_Dic = new SortedDictionary<double, Vector3d>();
+
+        public static double EngineActivateTime = 1;
 
         private bool CalculateAfterWarp;
 
