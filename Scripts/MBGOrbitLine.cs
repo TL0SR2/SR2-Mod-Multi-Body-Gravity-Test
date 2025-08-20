@@ -217,7 +217,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= 1000 && Distance < distance)
+                    if (Distance <= 100 && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
@@ -236,6 +236,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
                     if (UnityEngine.Input.GetMouseButtonDown(0))
                     {
+                        this.AllowAddNode = false;
                         this.PointerDown(orbitPoint);
                     }
 
@@ -312,6 +313,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void ConfirmManeuverNode(MBGManeuverNode maneuverNode)
         {
+
+            this.AllowAddNode = true;
             MBGOrbit.AddManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode.MaxAcc * maneuverNode.DeltaV.normalized, maneuverNode.ThrustTime);
         }
 
