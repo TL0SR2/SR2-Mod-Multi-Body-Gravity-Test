@@ -86,10 +86,7 @@ namespace Assets.Scripts
 
             inspectorModel.Add(new TextButtonModel("应用并计算", b =>
             {
-               
-                CraftNode craft = (CraftNode)Game.Instance.FlightScene.CraftNode;
-                MBGOrbit orbit = MBGOrbit.GetMBGOrbit(craft);
-                orbit.orbitInfo._orbitLine.TestAddManeuverNode(BurnTime + MBGOrbit.CurrentTime, new Vector3d(ProgradeBurnVelocity, NormalBurnVelocity, RadialBurnVelocity));
+                MBGOrbit.GetMBGOrbit((CraftNode)Game.Instance.FlightScene.CraftNode).orbitInfo._orbitLine.TestAddManeuverNode(BurnTime + MBGOrbit.CurrentTime, new Vector3d(ProgradeBurnVelocity, NormalBurnVelocity, RadialBurnVelocity));
             }));
             inspectorPanel = Game.Instance.UserInterface.CreateInspectorPanel(inspectorModel, new InspectorPanelCreationInfo()
             {
