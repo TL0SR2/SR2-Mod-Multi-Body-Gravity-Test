@@ -8,8 +8,6 @@ using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
 using Assets.Scripts.Flight.UI;
-using System.Diagnostics.SymbolStore;
-using UnityEditor.Experimental.GraphView;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
