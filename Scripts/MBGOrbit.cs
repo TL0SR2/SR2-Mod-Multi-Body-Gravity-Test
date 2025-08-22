@@ -23,7 +23,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
-            //Time_ThrustAcc_Dic.Add(startTime, new Vector3d());
+            Time_ThrustAcc_Dic.Add(startTime, new MBGManeuverNode(null, new MBGOrbitPoint(new P_V_Pair(startPosition, startVelocity), startTime), new Vector3d()));
             //MathCalculator = new MBGMath(this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
             try
@@ -316,6 +316,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public static bool AlreadyHaveNodeInTime(SortedDictionary<double, MBGManeuverNode> Dic, double StartTime, double EndTime)
         {
+            if (Dic.Count == 0) return false;
             
             int i = 0;
             try
@@ -336,7 +337,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             catch (Exception e)
             {
-                Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Catch Exception");
+                Debug.LogError("TL0SR2 MBG Orbit -- AlreadyHaveNodeInTime -- Catch Exception");
                 Debug.LogException(e);
                 Debug.LogError($"Detailed Data:  i {i}  Count {Dic.Count}");
                 return false;

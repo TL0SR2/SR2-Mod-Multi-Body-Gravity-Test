@@ -217,7 +217,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= 100 && Distance < distance)
+                    if (Distance <= 500 && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
@@ -307,7 +307,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             int n = this.MBGOrbit.GetPVNFromTime(Time, out _, out _);
             MBGManeuverNode maneuverNode = new MBGManeuverNode(this, MBGOrbit.MBG_PointList[n], DeltaV);
-            maneuverNodeList.Add(maneuverNode);
+            //maneuverNodeList.Add(maneuverNode);
             //Debug.Log($"Test Add ManeuverNode at n {n} DeltaV {DeltaV}");
             ConfirmManeuverNode(maneuverNode);
         }
@@ -317,6 +317,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             this.AllowAddNode = true;
             Debug.Log($"TL0SR2 MBG Orbit Line -- [Test] Add ManeuverNode At Time {maneuverNode.ManeuverPoint.Time}");
+            maneuverNodeList.Add(maneuverNode);
             MBGOrbit.AddOrChangeManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode);
         }
 

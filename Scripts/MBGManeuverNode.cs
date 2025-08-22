@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using ModApi.Craft;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace Assets.Scripts.Flight.Sim.MBG
@@ -25,7 +27,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public Vector3d DeltaV;
 
         public Vector3d AccVec => MaxAcc * DeltaV.normalized;
-        public double ThrustTime => DeltaV.magnitude / MaxAcc;
+        public double ThrustTime
+        {
+            get
+            {
+                if (DeltaV.magnitude == 0) return 0;
+                else return DeltaV.magnitude / MaxAcc;
+            }
+        }
         /*
         public MBGManeuverNode(double time)
         {
