@@ -344,6 +344,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public static Vector3d GetThrustAcc(SortedDictionary<double, MBGManeuverNode> Dic, double time)
         {
+            if (Dic.Count == 0)
+            {
+                return new Vector3d();
+            }
             int i = 0;
             KeyValuePair<double, MBGManeuverNode> TempPair = new KeyValuePair<double, MBGManeuverNode>();
             try
