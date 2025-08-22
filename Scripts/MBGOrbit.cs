@@ -23,7 +23,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
-            Time_ThrustAcc_Dic.Add(startTime, new Vector3d());
+            //Time_ThrustAcc_Dic.Add(startTime, new Vector3d());
             //MathCalculator = new MBGMath(this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
             try
@@ -267,14 +267,36 @@ namespace Assets.Scripts.Flight.Sim.MBG
             
         }
 
-        public void AddManeuverNode(double startTime, Vector3d ThrustAcc, double ThrustTime)
+        public void AddOrChangeManeuverNode(double startTime, MBGManeuverNode node)
         {
-            Time_ThrustAcc_Dic.Add(startTime - EngineActivateTime, new Vector3d());
-            Time_ThrustAcc_Dic.Add(startTime, ThrustAcc);
-            Time_ThrustAcc_Dic.Add(startTime + ThrustTime, ThrustAcc);
-            Time_ThrustAcc_Dic.Add(startTime + ThrustTime + EngineActivateTime, new Vector3d());
+            if (Time_ThrustAcc_Dic.ContainsKey(startTime))
+            {
+                Time_ThrustAcc_Dic[startTime] = node;
+            }
+            else
+            {
+                AddManeuverNode(startTime, node);
+            }
+        }
+
+        public void AddManeuverNode(double startTime, MBGManeuverNode node)
+        {
+            if (!AlreadyHaveNodeInTime(Time_ThrustAcc_Dic, startTime, startTime + node.ThrustTime))
+            {
+                Time_ThrustAcc_Dic.Add(startTime, node);
+                ForceReCalculation();
+            }
+            else
+            {
+                Game.Instance.UserInterface.CreateMessageDialog("There's already Burn Node in this node burn time.");
+            }
+        }
+        public void RemoveManeuverNode(double startTime)
+        {
+            Time_ThrustAcc_Dic.Remove(startTime);
             ForceReCalculation();
         }
+
 
         public Vector3d GetThrustAcc(double time)
         {
@@ -291,27 +313,68 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return MBG_PointList[n].ThrustAcc;
             }
         }
-        public static Vector3d GetThrustAcc(SortedDictionary<double, Vector3d> Dic, double time)
+
+        public static bool AlreadyHaveNodeInTime(SortedDictionary<double, MBGManeuverNode> Dic, double StartTime, double EndTime)
         {
-                int i = 0;
-                KeyValuePair<double, Vector3d> TempPair = new KeyValuePair<double, Vector3d>();
+            
+            int i = 0;
             try
             {
                 foreach (var Pair in Dic)
                 {
-                    if (((i == 0) && (time < Pair.Key)) || ((i >= Dic.Count - 1) && (time > Pair.Key)))
+                    if (((i == 0) && (EndTime < (Pair.Key - MBGOrbit.EngineActivateTime))) || ((i >= Dic.Count - 1) && (StartTime > (Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime))))
+                    {
+                        return false;
+                    }
+                    if ((StartTime < (Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime)) && (EndTime > (Pair.Key - MBGOrbit.EngineActivateTime)))
+                    {
+                        return true;
+                    }
+                    i++;
+                }
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("TL0SR2 MBG Orbit -- GetThrustAcc -- Catch Exception");
+                Debug.LogException(e);
+                Debug.LogError($"Detailed Data:  i {i}  Count {Dic.Count}");
+                return false;
+            }
+        }
+        public static Vector3d GetThrustAcc(SortedDictionary<double, MBGManeuverNode> Dic, double time)
+        {
+            int i = 0;
+            KeyValuePair<double, MBGManeuverNode> TempPair = new KeyValuePair<double, MBGManeuverNode>();
+            try
+            {
+                foreach (var Pair in Dic)
+                {
+                    if (((i == 0) && (time < (Pair.Key - MBGOrbit.EngineActivateTime))) || ((i >= Dic.Count - 1) && (time > (Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime))))
                     {
                         return new Vector3d();
                     }
                     if (time < Pair.Key)
                     {
-                        return MBGMath.LinearInterpolation(TempPair.Value, Pair.Value, TempPair.Key, Pair.Key, time);
+                        if (time < (TempPair.Key + TempPair.Value.ThrustTime))
+                        {
+                            return TempPair.Value.AccVec;
+                        }
+                        else if (time < (TempPair.Key + TempPair.Value.ThrustTime + MBGOrbit.EngineActivateTime))
+                        {
+                            return MBGMath.LinearInterpolation(TempPair.Value.AccVec, new Vector3d(), TempPair.Key + TempPair.Value.ThrustTime, TempPair.Key + TempPair.Value.ThrustTime + MBGOrbit.EngineActivateTime, time);
+                        }
+                        else if (time > (Pair.Key - MBGOrbit.EngineActivateTime))
+                        {
+                            return MBGMath.LinearInterpolation(new Vector3d(), Pair.Value.AccVec, Pair.Key - MBGOrbit.EngineActivateTime, Pair.Key, time);
+                        }
+                        else return new Vector3d();
                     }
                     TempPair = Pair;
                     i++;
                 }
                 Debug.LogError($"TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return -- Detailed Data i {i} Count {Dic.Count}");
-                return TempPair.Value;
+                return TempPair.Value.AccVec;
             }
             catch (Exception e)
             {
@@ -514,7 +577,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int CaculationNum = 0;
         //指定当前轨道已经经过了多少次重新计算
 
-        private SortedDictionary<double, Vector3d> Time_ThrustAcc_Dic = new SortedDictionary<double, Vector3d>();
+        private SortedDictionary<double, MBGManeuverNode> Time_ThrustAcc_Dic = new SortedDictionary<double, MBGManeuverNode>();
 
         public static double EngineActivateTime = 1;
 

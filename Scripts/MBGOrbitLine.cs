@@ -300,14 +300,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void AddManeuverNode(MBGOrbitPoint orbitPoint)
         {
-
+            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.Camera, this._nodeAdderGraphicContainer.transform, this, orbitPoint, node => this.ConfirmManeuverNode(node));
         }
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
         {
             int n = this.MBGOrbit.GetPVNFromTime(Time, out _, out _);
             MBGManeuverNode maneuverNode = new MBGManeuverNode(this, MBGOrbit.MBG_PointList[n], DeltaV);
-            Debug.Log($"Test Add ManeuverNode at n {n} DeltaV {DeltaV}");
+            maneuverNodeList.Add(maneuverNode);
+            //Debug.Log($"Test Add ManeuverNode at n {n} DeltaV {DeltaV}");
             ConfirmManeuverNode(maneuverNode);
         }
 
@@ -315,7 +316,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
 
             this.AllowAddNode = true;
-            MBGOrbit.AddManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode.MaxAcc * maneuverNode.DeltaV.normalized, maneuverNode.ThrustTime);
+            Debug.Log($"TL0SR2 MBG Orbit Line -- [Test] Add ManeuverNode At Time {maneuverNode.ManeuverPoint.Time}");
+            MBGOrbit.AddOrChangeManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode);
         }
 
         public override void OnBeforeCameraPositioned()
@@ -420,7 +422,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             _lineMaterial = lineMaterial;
             base.Color = color;
 
-            base.Selectable = true;GameObject NodeAdder = new GameObject("MBGNodeAdder");
+            base.Selectable = true;
+            GameObject NodeAdder = new GameObject("MBGNodeAdder");
             NodeAdder.transform.SetParent(this.transform);
             NodeAdder.layer = this.gameObject.layer;
             NodeAdder.AddComponent<GraphicRaycaster>();
@@ -703,10 +706,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         internal void SetColor(Color color)
         {
             base.Color = color;
-            if (IsValidRendering)
-            {
-                _vectrocityLine.color = color;
-            }
+            _vectrocityLine.color = color;
         }
         internal void Disable()
         //Disable当前的GameObj
@@ -890,6 +890,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public MBGOrbitPoint PointerPoint;
         //光标指向位置的太阳坐标
+
+        public List<MBGManeuverNode> maneuverNodeList = new List<MBGManeuverNode>();
 
         public bool AllowAddNode = false;
         //指示当前是否允许添加点火节点（即有无有效的光标指向位置）

@@ -49,7 +49,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint,SortedDictionary<double, Vector3d> T_TAC_Dic, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint,SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
         {
             P_V_Pair PVPair = startPoint.State;
             double time = startPoint.Time;

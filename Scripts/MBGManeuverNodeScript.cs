@@ -1,0 +1,335 @@
+using System;
+using System.Collections.Generic;
+using Assets.Scripts.Flight.MapView.Interfaces;
+using Assets.Scripts.Flight.MapView.Interfaces.Contexts;
+using Assets.Scripts.Flight.MapView.Items;
+using Assets.Scripts.Flight.MapView.Orbits;
+using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
+using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes.Interfaces;
+using UnityEngine.EventSystems;
+using Assets.Scripts.Flight.MapView.Orbits.DrawModes;
+using Assets.Scripts.Flight.MapView.Orbits.DrawModes.Interfaces.IDrawMode;
+using Assets.Scripts.Flight.MapView.Orbits.Interfaces;
+using Assets.Scripts.Flight.MapView.UI;
+using Assets.Scripts.Flight.Sim;
+using ModApi;
+using ModApi.Flight.MapView;
+using ModApi.Flight.Sim;
+using ModApi.Ioc;
+using ModApi.Math;
+using ModApi.State.MapView;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
+using Vectrosity;
+using Assets.Scripts.Flight.MapView;
+using ModApi.Common.UI;
+using Assets.Scripts.Career.Contracts.Requirements;
+using ModApi.Common.Extensions;
+using Assets.Scripts.Flight.UI;
+
+namespace Assets.Scripts.Flight.Sim.MBG
+{
+    //当前主要目标：把球显示出来（
+    public class MBGManeuverNodeScript : MapItem, ICameraFocusable
+    {
+        public event CameraFocusableItemDestroyedHandler Destroyed
+        {
+            add
+            {
+                ((ICameraFocusable)_orbitLine).Destroyed += value;
+            }
+
+            remove
+            {
+                ((ICameraFocusable)_orbitLine).Destroyed -= value;
+            }
+        }
+
+        public static MBGManeuverNodeScript Create(Camera camera, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point,Action<MBGManeuverNode> action)
+        {
+            MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
+            maneuverNodeScript.ConfirmBurn = action;
+            maneuverNodeScript.name = "MBGBurnNode";
+            maneuverNodeScript.transform.SetParent(parent);
+            maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
+            maneuverNodeScript.Initialize(orbitLine, point, camera);
+            maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d());
+
+            return maneuverNodeScript;
+        }
+
+        private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point, Camera camera)
+        {
+            this._orbitLine = orbitLine;
+            this._camera = camera;
+            this._point = point;
+            this.UpdateManeuverVectors();
+            this.InitializeUi();
+        }
+
+
+        private void UpdateManeuverVectors()
+        {
+            this._progradeVec = this._point.State.Velocity.normalized;
+            this._radialVec = -MBGOrbit.CalculateGravityAtTime(this._point.State.Position, this._point.Time).normalized;
+            this._normalVec = Vector3d.Cross(this._progradeVec, this._radialVec).normalized;
+            //u3d中的向量叉乘是左手系喵
+        }
+
+        private void InitializeUi()
+        {
+
+            GameObject gameObject = base.gameObject;
+            this._infoCanvas = gameObject.AddComponent<Canvas>();
+            this._infoCanvas.gameObject.AddComponent<GraphicRaycaster>();
+            this._infoCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            this._infoCanvas.worldCamera = this._camera;
+            this._infoCanvas.overrideSorting = true;
+            this._infoCanvas.sortingOrder = -1;
+            this._maneuverNodeAdjustorContainer = new GameObject("BurnNodeAdjustorContainer").transform;
+            this._maneuverNodeAdjustorContainer.SetParent(gameObject.transform);
+            this._maneuverNodeAdjustorContainer.localScale = Vector3.one;
+            this._maneuverNodeAdjustorContainer.gameObject.layer = base.gameObject.layer;
+
+
+            Color.RGBToHSV(new Color(0.96f, 0.36f, 0.42f), out float h, out float num, out float v);
+            Color color = Color.HSVToRGB(h, num * 0.6f, v);
+            Color.RGBToHSV(new Color(0.01f, 0.9f, 0.25f), out h, out num, out v);
+            Color color2 = Color.HSVToRGB(h, num * 0.6f, v);
+            Color.RGBToHSV(new Color(0.28f, 0.38f, 0.91f), out h, out num, out v);
+            Color color3 = Color.HSVToRGB(h, num * 0.6f, v);
+            this.adjustorScripts[0] = this.CreateAdjustor(() => this._progradeVec, "Prograde", color2, true, null);
+            this.adjustorScripts[1] = this.CreateAdjustor(() => -this._progradeVec, "Retrograde", color2, true, null);
+            this.adjustorScripts[2] = this.CreateAdjustor(() => this._radialVec, "Radial-out", color3, true, null);
+            this.adjustorScripts[3] = this.CreateAdjustor(() => -this._radialVec, "Radial-in", color3, true, null);
+            this.adjustorScripts[4] = this.CreateAdjustor(() => this._normalVec, "Normal", color, true, null);
+            this.adjustorScripts[5] = this.CreateAdjustor(() => -this._normalVec, "Anti-normal", color, true, null);
+
+
+            GameObject gameObject2 = new GameObject("BurnNodeSelection");
+            gameObject2.transform.SetParent(this._infoCanvas.transform);
+            this._selectNodeIcon = gameObject2.AddComponent<Image>();
+            this._selectNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
+            this._selectNodeIcon.transform.localScale = Vector3.one;
+            this._selectNodeIcon.sprite = UiUtils.LoadIconSprite("Sphere");
+            this._selectNodeIcon.color = new Color(0, 1, 1, 1f);
+            this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
+            this._selectNodeIcon.enabled = true;
+            GameObject gameObject3 = new GameObject("BurnLocked");
+            gameObject3.transform.SetParent(this._infoCanvas.transform);
+            this._lockedNodeIcon = gameObject3.AddComponent<Image>();
+            this._lockedNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
+            this._lockedNodeIcon.transform.localScale = Vector3.one;
+            this._lockedNodeIcon.sprite = UiUtils.LoadIconSprite("ManeuverLocked");
+            this._lockedNodeIcon.rectTransform.sizeDelta = new Vector2(25f, 25f);
+            this._lockedNodeIcon.enabled = false;
+            this._selectNodeIconSize = new Vector2(this._selectNodeIcon.rectTransform.sizeDelta.x * this._selectNodeIcon.transform.localScale.x, this._selectNodeIcon.rectTransform.sizeDelta.y * this._selectNodeIcon.transform.localScale.y);
+            GameObject gameObject4 = new GameObject("BurnNodeDeletion");
+            gameObject4.transform.SetParent(this._infoCanvas.transform);
+            this._deleteNodeIcon = gameObject4.AddComponent<Image>();
+            this._deleteNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
+            this._deleteNodeIcon.transform.localScale = Vector3.one;
+            this._deleteNodeIcon.sprite = UiUtils.LoadIconSprite("Delete");
+            this._deleteNodeIcon.rectTransform.sizeDelta = new Vector2(15f, 15f);
+            this._deleteNodeIcon.enabled = false;
+        }
+
+        public override void OnAfterCameraPositioned()
+        {
+            base.OnAfterCameraPositioned();
+            this.UpdateManeuverVectors();
+            this.UpdatePositions();
+            this.UpdateUI();
+        }
+        private MBGNodeDeltaVAdjustorScript CreateAdjustor(Func<Vector3d> maneuverVec, string iconName, Color color, bool subscribeToEvents = true, string name = null)
+		{
+			MBGNodeDeltaVAdjustorScript nodeDeltaVAdjustorScript = MBGNodeDeltaVAdjustorScript.Create(this._infoCanvas, this._maneuverNodeAdjustorContainer, maneuverVec, this, string.IsNullOrEmpty(name) ? iconName : name, iconName, color);
+			if (subscribeToEvents)
+			{
+				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangeBeginEvent += this.OnAdjustorChangeBegin;
+				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangingEvent += this.OnAdjustorChanging;
+				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangeEndEvent += this.OnAdjustorChangeEnd;
+			}
+			return nodeDeltaVAdjustorScript;
+		}
+		private void OnAdjustorChangeBegin(MBGNodeDeltaVAdjustorScript source)
+		{
+			this._maneuverNodeAdjustorBeingDragged = source;
+			this._dvChanged = true;
+			this._dvChangeBegin = true;
+		}
+
+        private void OnAdjustorChangeEnd(MBGNodeDeltaVAdjustorScript source)
+        {
+            this._maneuverNodeAdjustorBeingDragged = null;
+            this._dvChanged = true;
+            this._dvChangeEnd = true;
+            this.maneuverNode.DeltaV = this._deltaV;
+            this.ConfirmBurn?.Invoke(this.maneuverNode);
+		}
+        private Vector3d CalculateDeltaV()
+        {
+            Vector3d vector3d = Vector3d.zero;
+            for (int i = 0; i < this.adjustorScripts.Length; i++)
+            {
+                vector3d += this.adjustorScripts[i].DeltaV;
+            }
+            return vector3d;
+        }
+
+
+		private void OnAdjustorChanging(MBGNodeDeltaVAdjustorScript source)
+		{
+			this._dvChanged = true;
+			this._dvChanging = true;
+			this.SetDeltaV(this.CalculateDeltaV(), false);
+			this.UpdateDeltaVAxisContributions();
+			this.ActivateAutolockCooldown();
+			Game.Instance.FlightScene.FlightSceneUI.ShowMessage(string.Format("Delta V: {0}", Units.GetVelocityString((float)this.DeltaVMag, Units.UnitPrecisionMode.High)), false, 3f);
+		}
+        private void ActivateAutolockCooldown()
+        {
+            this._nextAutoLockAvailability = Time.time + 5f;
+        }
+        private void SetDeltaV(Vector3d deltaV, bool updateAdjustors)
+        {
+            if (updateAdjustors)
+            {
+                for (int i = 0; i < this.adjustorScripts.Length; i++)
+                {
+                    this.adjustorScripts[i].SetDeltaV(Vector3.zero);
+                }
+                this.adjustorScripts[0].SetDeltaV(deltaV);
+            }
+            this._prevDeltaV = this._deltaV;
+            this._deltaV = deltaV;
+            this.DeltaVMag = deltaV.magnitude;
+            this.UpdateDeltaVAxisContributions();
+            //this.UpdateBurnInfo();
+            return;
+        }
+		private void UpdateDeltaVAxisContributions()
+		{
+			Vector3d deltaV = this._deltaV;
+			this.DeltaVPrograde = Vector3d.Dot(deltaV, this._progradeVec);
+			this.DeltaVRadial = Vector3d.Dot(deltaV, this._radialVec);
+			this.DeltaVNormal = Vector3d.Dot(deltaV, this._normalVec);
+		}
+        private void UpdatePositions()
+        {
+            Vector3d solarPositionAtCurrent = this._point.State.Position;
+            Vector3d nodeWorldPosition = this._orbitLine.CoordinateConverter.ConvertSolarToMapView(solarPositionAtCurrent);
+            this._nodeWorldPosition = nodeWorldPosition;
+            if (this._infoCanvas.worldCamera != null)
+            {
+                this._nodeScreenPosition = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)this._nodeWorldPosition);
+                this._cameraDistance = Vector3d.Distance(this._nodeWorldPosition, this._infoCanvas.worldCamera.transform.position);
+            }
+        }
+
+        private void UpdateUI()
+        {
+            if (!this._orbitLine.Data.ShowOrbitLine)
+            {
+                this._lockedNodeIcon.enabled = false;
+                this._selectNodeIcon.enabled = false;
+                this._deleteNodeIcon.enabled = false;
+                return;
+            }
+            if (this._nodeScreenPosition.z <= 0f)
+            {
+                this._maneuverNodeAdjustorContainer.gameObject.SetActive(false);
+                //this.CompleteGizmoAnimations();
+                this._lockedNodeIcon.enabled = false;
+                this._selectNodeIcon.enabled = false;
+                this._deleteNodeIcon.enabled = false;
+                return;
+            }
+            this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
+            this._selectNodeIcon.transform.position = this._nodeScreenPosition;
+            this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
+            double d = Mathd.Tan(0.01745329 * (double)(4 * (Game.Instance.Device.IsMobileBuild ? 3 : 2))) * this._cameraDistance * (double)Game.UiScale;
+            Vector3d a = (this._camera.transform.up + this._camera.transform.right).normalized;
+            Vector3d vector3d = this._nodeWorldPosition + a * d;
+            if (this._infoCanvas.isActiveAndEnabled)
+            {
+                this._deleteNodeIcon.transform.position = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)vector3d);
+            }
+            this._selectNodeIcon.enabled = true;
+        }
+
+        private Camera _camera;
+        private double _cameraDistance;
+        private Vector3d _nodeWorldPosition;
+        private Transform _maneuverNodeAdjustorContainer;
+        private Canvas _infoCanvas;
+
+        private MBGOrbitLine _orbitLine;
+        public MBGOrbitPoint _point { get; private set; }
+
+        private Image _lockedNodeIcon;
+        private Image _selectNodeIcon;
+        private Image _deleteNodeIcon;
+        private Vector2 _selectNodeIconSize;
+        private Vector3 _nodeScreenPosition;
+        private Vector3d _progradeVec;
+        //沿速度方向的矢量
+        private Vector3d _radialVec;
+        //沿法线方向向外的矢量
+        private Vector3d _normalVec;
+        //沿垂直方向向上的矢量
+		public double DeltaVNormal { get; private set; }
+		public double DeltaVPrograde { get; private set; }
+		public double DeltaVRadial { get; private set; }
+        //以上依次是沿着三个方向的DV值（大概吧喵）
+		private MBGNodeDeltaVAdjustorScript _maneuverNodeAdjustorBeingDragged;
+
+        private MBGManeuverNode maneuverNode;
+		private bool _dvChanged;
+
+		private bool _dvChangeEnd;
+		private bool _dvChangeBegin;
+		private bool _dvChanging;
+		private Vector3d _deltaV = Vector3d.zero;
+		private Vector3d _prevDeltaV;
+		private float _nextAutoLockAvailability;
+		public double DeltaVMag { get; private set; }
+
+        private MBGNodeDeltaVAdjustorScript[] adjustorScripts = new MBGNodeDeltaVAdjustorScript[6];
+
+        public float DeltaVAdjustmentSensitivityLinear
+        {
+            get
+            {
+                return this._deltaVAdjustmentSensitivityLinear;
+            }
+            set
+            {
+                float num = Mathf.Clamp(value, 0.01f, 2f);
+                this._deltaVAdjustmentSensitivityLinear = num;
+                this._deltaVAdjustmentSensitivityExpo = Mathf.Pow(num, 1.5f);
+            }
+        }
+
+        public IPlanetNode AssociatedPlanet => ((ICameraFocusable)_orbitLine).AssociatedPlanet;
+
+        public bool FocusByClick => ((ICameraFocusable)_orbitLine).FocusByClick;
+
+        public ICameraFocusable ItemToFocusOnWhenDeleted => ((ICameraFocusable)_orbitLine).ItemToFocusOnWhenDeleted;
+
+        public float MinZoomDistance => ((ICameraFocusable)_orbitLine).MinZoomDistance;
+
+        public IOrbitNode OrbitNode => ((ICameraFocusable)_orbitLine).OrbitNode;
+
+        public Vector3 Position => (Vector3)_orbitLine.CoordinateConverter.ConvertSolarToMapView(_point.State.Position);
+
+        public override ICameraFocusable AssociatedPlanetCameraFocusable => _orbitLine.AssociatedPlanetCameraFocusable;
+
+        private Action<MBGManeuverNode> ConfirmBurn;
+
+        public float _deltaVAdjustmentSensitivityLinear { get; private set; } = 1f;
+        public float _deltaVAdjustmentSensitivityExpo { get; private set; } = 1f;
+    }
+}
