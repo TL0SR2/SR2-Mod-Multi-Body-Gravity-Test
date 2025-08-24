@@ -22,8 +22,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             CurrentCraft = craftNode;
             craftNode.Destroyed += node =>
             {
-                this.CraftDestroyed = true;
-                Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging -= e => this.ChangeTimeActivate(e);
+                RemoveMBGOrbit(node as CraftNode);
             };
             Time_ThrustAcc_Dic.Add(startTime, new MBGManeuverNode(null, new MBGOrbitPoint(new P_V_Pair(startPosition, startVelocity), startTime), new Vector3d()));
             //MathCalculator = new MBGMath(this);
@@ -154,6 +153,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 try
                 {
                     var Orbit = GetMBGOrbit(craftNode);
+                    Orbit.CraftDestroyed = true;
                     Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging -= e => Orbit.ChangeTimeActivate(e);
                 }
                 finally
