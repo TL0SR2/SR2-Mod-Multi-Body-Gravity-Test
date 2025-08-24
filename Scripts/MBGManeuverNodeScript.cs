@@ -149,11 +149,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public override void OnAfterCameraPositioned()
         {
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log");
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 1");
             base.OnAfterCameraPositioned();
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 2");
             this.UpdateManeuverVectors();
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 3");
             this.UpdatePositions();
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 4");
             this.UpdateUI();
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 5");
         }
         private MBGNodeDeltaVAdjustorScript CreateAdjustor(Func<Vector3d> maneuverVec, string iconName, Color color, bool subscribeToEvents = true, string name = null)
 		{
