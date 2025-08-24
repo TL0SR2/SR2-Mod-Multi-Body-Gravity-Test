@@ -26,7 +26,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
-        public static MBGManeuverNodeScript Create(Camera camera, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point,Action<MBGManeuverNode> action)
+        public static MBGManeuverNodeScript Create(Camera camera, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
         {
             MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
             maneuverNodeScript.ConfirmBurn = action;
@@ -79,12 +79,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             Color color2 = Color.HSVToRGB(h, num * 0.6f, v);
             Color.RGBToHSV(new Color(0.28f, 0.38f, 0.91f), out h, out num, out v);
             Color color3 = Color.HSVToRGB(h, num * 0.6f, v);
-            this.adjustorScripts[0] = this.CreateAdjustor(() => this._progradeVec, "Prograde", color2, true, null);
-            this.adjustorScripts[1] = this.CreateAdjustor(() => -this._progradeVec, "Retrograde", color2, true, null);
-            this.adjustorScripts[2] = this.CreateAdjustor(() => this._radialVec, "Radial-out", color3, true, null);
-            this.adjustorScripts[3] = this.CreateAdjustor(() => -this._radialVec, "Radial-in", color3, true, null);
-            this.adjustorScripts[4] = this.CreateAdjustor(() => this._normalVec, "Normal", color, true, null);
-            this.adjustorScripts[5] = this.CreateAdjustor(() => -this._normalVec, "Anti-normal", color, true, null);
+            this._maneuverNodeAdjustors[0] = this.CreateAdjustor(() => this._progradeVec, "Prograde", color2, true, null);
+            this._maneuverNodeAdjustors[1] = this.CreateAdjustor(() => -this._progradeVec, "Retrograde", color2, true, null);
+            this._maneuverNodeAdjustors[2] = this.CreateAdjustor(() => this._radialVec, "Radial-out", color3, true, null);
+            this._maneuverNodeAdjustors[3] = this.CreateAdjustor(() => -this._radialVec, "Radial-in", color3, true, null);
+            this._maneuverNodeAdjustors[4] = this.CreateAdjustor(() => this._normalVec, "Normal", color, true, null);
+            this._maneuverNodeAdjustors[5] = this.CreateAdjustor(() => -this._normalVec, "Anti-normal", color, true, null);
 
 
             GameObject gameObject2 = new GameObject("BurnNodeSelection");
@@ -114,9 +114,35 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._deleteNodeIcon.rectTransform.sizeDelta = new Vector2(15f, 15f);
             this._deleteNodeIcon.enabled = false;
         }
+        private void SetGizmoState(GizmoState state)
+        {
+            if (state == GizmoState.Retracted)
+            {
+                for (int i = 0; i < this._maneuverNodeAdjustors.Length; i++)
+                {
+                    this._maneuverNodeAdjustors[i].OnDeselected();
+                }
+            }
+            else if (state == GizmoState.Extended)
+            {
+                if (!Locked)
+                {
+                    for (int j = 0; j < this._maneuverNodeAdjustors.Length; j++)
+                    {
+                        this._maneuverNodeAdjustors[j].OnSelected();
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log(string.Format("Unsupported gizmo state {0}", state));
+            }
+            this._gizmoState = state;
+        }
 
         public override void OnAfterCameraPositioned()
         {
+            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log");
             base.OnAfterCameraPositioned();
             this.UpdateManeuverVectors();
             this.UpdatePositions();
@@ -151,9 +177,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private Vector3d CalculateDeltaV()
         {
             Vector3d vector3d = Vector3d.zero;
-            for (int i = 0; i < this.adjustorScripts.Length; i++)
+            for (int i = 0; i < this._maneuverNodeAdjustors.Length; i++)
             {
-                vector3d += this.adjustorScripts[i].DeltaV;
+                vector3d += this._maneuverNodeAdjustors[i].DeltaV;
             }
             return vector3d;
         }
@@ -176,11 +202,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (updateAdjustors)
             {
-                for (int i = 0; i < this.adjustorScripts.Length; i++)
+                for (int i = 0; i < this._maneuverNodeAdjustors.Length; i++)
                 {
-                    this.adjustorScripts[i].SetDeltaV(Vector3.zero);
+                    this._maneuverNodeAdjustors[i].SetDeltaV(Vector3.zero);
                 }
-                this.adjustorScripts[0].SetDeltaV(deltaV);
+                this._maneuverNodeAdjustors[0].SetDeltaV(deltaV);
             }
             this._prevDeltaV = this._deltaV;
             this._deltaV = deltaV;
@@ -237,7 +263,38 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.transform.position = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)vector3d);
             }
             this._selectNodeIcon.enabled = true;
+			this._lockedNodeIcon.enabled = this.Locked;
+			this._deleteNodeIcon.enabled = true;
         }
+        
+        public void CompleteGizmoAnimations()
+        {
+            this._movementAidGizmo.CompletePendingAnimations();
+            MBGNodeDeltaVAdjustorScript[] maneuverNodeAdjustors = this._maneuverNodeAdjustors;
+            for (int i = 0; i < maneuverNodeAdjustors.Length; i++)
+            {
+                maneuverNodeAdjustors[i].CompletePendingAnimations();
+            }
+        }
+        
+        
+		private void SetMoveAidVisible(bool visible)
+        {
+            if (visible)
+            {
+                if (this._gizmoState != GizmoState.Retracted)
+                {
+                    this.SetGizmoState(GizmoState.Retracted);
+                }
+                this._movementAidGizmo.OnSelected();
+                return;
+            }
+            this._movementAidGizmo.OnDeselected();
+            this.SetGizmoState(GizmoState.Extended);
+        }
+        
+        private MBGNodeDeltaVAdjustorScript _movementAidGizmo;
+        //当前正在操作的节点
 
         private Camera _camera;
         private double _cameraDistance;
@@ -275,8 +332,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 		private Vector3d _prevDeltaV;
 		private float _nextAutoLockAvailability;
 		public double DeltaVMag { get; private set; }
+		private GizmoState _gizmoState;
+        public bool Locked = false;
 
-        private MBGNodeDeltaVAdjustorScript[] adjustorScripts = new MBGNodeDeltaVAdjustorScript[6];
+        private MBGNodeDeltaVAdjustorScript[] _maneuverNodeAdjustors = new MBGNodeDeltaVAdjustorScript[6];
 
         public float DeltaVAdjustmentSensitivityLinear
         {
@@ -310,5 +369,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public float _deltaVAdjustmentSensitivityLinear { get; private set; } = 1f;
         public float _deltaVAdjustmentSensitivityExpo { get; private set; } = 1f;
+		private enum GizmoState
+		{
+			// Token: 0x04001910 RID: 6416
+			Extended,
+			// Token: 0x04001911 RID: 6417
+			Retracted
+		}
     }
 }
