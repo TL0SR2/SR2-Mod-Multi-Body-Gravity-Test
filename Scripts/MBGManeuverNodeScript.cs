@@ -153,15 +153,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (this.InitComplete)
             {
-                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 1");
+                //Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 1");
                 //base.OnAfterCameraPositioned();
-                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 2");
+                //Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 2");
                 this.UpdateManeuverVectors();
-                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 3");
+                //Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 3");
                 this.UpdatePositions();
-                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 4");
+                //Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 4");
                 this.UpdateUI();
-                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 5");
+                //Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 5");
             }
         }
         private MBGNodeDeltaVAdjustorScript CreateAdjustor(Func<Vector3d> maneuverVec, string iconName, Color color, bool subscribeToEvents = true, string name = null)
@@ -246,6 +246,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (this._infoCanvas.worldCamera != null)
             {
                 this._nodeScreenPosition = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)this._nodeWorldPosition);
+                //this._nodeScreenPosition = 
                 this._cameraDistance = Vector3d.Distance(this._nodeWorldPosition, this._infoCanvas.worldCamera.transform.position);
             }
         }
@@ -254,6 +255,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (!this._orbitLine.Data.ShowOrbitLine)
             {
+                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log A");
                 this._lockedNodeIcon.enabled = false;
                 this._selectNodeIcon.enabled = false;
                 this._deleteNodeIcon.enabled = false;
@@ -261,6 +263,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             if (this._nodeScreenPosition.z <= 0f)
             {
+                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log B");
                 this._maneuverNodeAdjustorContainer.gameObject.SetActive(false);
                 //this.CompleteGizmoAnimations();
                 this._lockedNodeIcon.enabled = false;
@@ -268,6 +271,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.enabled = false;
                 return;
             }
+                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;

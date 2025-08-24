@@ -5,7 +5,6 @@ using ModApi.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
-using UnityEditor.Experimental.GraphView;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
