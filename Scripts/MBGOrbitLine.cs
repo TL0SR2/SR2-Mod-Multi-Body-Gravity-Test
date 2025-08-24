@@ -211,7 +211,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= 100 && Distance < distance)
+                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 5) && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
@@ -224,7 +224,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     this.PointerPoint = orbitPoint;
                     this._addNodeIcon.enabled = true;
                     this.AllowAddNode = true;
-                    double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.01;
+                    double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.02;
                     this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)size);
                     this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)size);
 
@@ -294,7 +294,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void AddManeuverNode(MBGOrbitPoint orbitPoint)
         {
-            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.Camera, this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
+            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
         }
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
@@ -428,7 +428,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
             canvas.overrideSorting = true;
-            canvas.sortingOrder = -5;
+            canvas.sortingOrder = -1;
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = this.Camera;
 

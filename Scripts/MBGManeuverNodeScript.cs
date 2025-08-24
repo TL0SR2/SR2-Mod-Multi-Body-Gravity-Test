@@ -2,6 +2,8 @@ using System;
 using Assets.Scripts.Flight.MapView.Items;
 using Assets.Scripts.Flight.MapView.UI;
 using ModApi;
+using ModApi.Common.Extensions;
+using ModApi.Common.UI;
 using ModApi.Flight.MapView;
 using ModApi.Flight.Sim;
 using ModApi.Math;
@@ -26,7 +28,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
-        public static MBGManeuverNodeScript Create(Camera camera, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
+        public static MBGManeuverNodeScript Create(Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
         {
             MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
             //MBGManeuverNodeScript maneuverNodeScript = MapItem.Create<MBGManeuverNodeScript>(orbitLine.Ioc,orbitLine.MapViewContext,)
@@ -34,16 +36,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
             maneuverNodeScript.name = "MBGBurnNode";
             maneuverNodeScript.transform.SetParent(parent);
             maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
-            maneuverNodeScript.Initialize(orbitLine, point, camera);
+            maneuverNodeScript.Initialize(orbitLine, point);
             maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d());
 
             return maneuverNodeScript;
         }
 
-        private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point, Camera camera)
+        private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point)
         {
             this._orbitLine = orbitLine;
-            this._camera = camera;
+            this._camera = orbitLine.Camera;
             this._point = point;
             this.UpdateManeuverVectors();
             this.InitializeUi();
@@ -62,18 +64,35 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private void InitializeUi()
         {
+            /*
+            this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
+            this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
+            this._nodeAdderGraphicContainer.layer = this.gameObject.layer;
+            this._addNodeIcon = new GameObject("AddIcon").AddComponent<Image>();
+            this._addNodeIcon.sprite = UiUtils.LoadIconSprite("Add");
+            this._addNodeIcon.raycastTarget = true;
+            this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
+            this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
+            this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
+            this._addNodeIcon.gameObject.layer = this.gameObject.layer;
+            this._addNodeIcon.enabled = false;
+            */
 
-            GameObject gameObject = base.gameObject;
+            GameObject gameObject = new GameObject("infoCanvas");
             this._infoCanvas = gameObject.AddComponent<Canvas>();
+            this._infoCanvas.gameObject.layer = this._orbitLine.gameObject.layer;
+            this._infoCanvas.transform.SetParent(this._orbitLine.transform);
             this._infoCanvas.gameObject.AddComponent<GraphicRaycaster>();
             this._infoCanvas.renderMode = RenderMode.ScreenSpaceCamera;
-            this._infoCanvas.worldCamera = this._camera;
+            this._infoCanvas.worldCamera = this._orbitLine.Camera;
             this._infoCanvas.overrideSorting = true;
-            this._infoCanvas.sortingOrder = -1;
+            this._infoCanvas.sortingOrder = -5;
+            this._infoCanvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
+            Utilities.FixUnityCanvasSortingBug(_infoCanvas);
             this._maneuverNodeAdjustorContainer = new GameObject("BurnNodeAdjustorContainer").transform;
-            this._maneuverNodeAdjustorContainer.SetParent(gameObject.transform);
+            this._maneuverNodeAdjustorContainer.SetParent(this._infoCanvas.transform);
             this._maneuverNodeAdjustorContainer.localScale = Vector3.one;
-            this._maneuverNodeAdjustorContainer.gameObject.layer = base.gameObject.layer;
+            this._maneuverNodeAdjustorContainer.gameObject.layer = gameObject.layer;
 
 
             Color.RGBToHSV(new Color(0.96f, 0.36f, 0.42f), out float h, out float num, out float v);
@@ -240,13 +259,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
 		}
         private void UpdatePositions()
         {
-            Vector3d solarPositionAtCurrent = this._point.State.Position;
+            Vector3d solarPositionAtCurrent = this._orbitLine.GetPointSolarPosition(this._point);
             Vector3d nodeWorldPosition = this._orbitLine.CoordinateConverter.ConvertSolarToMapView(solarPositionAtCurrent);
             this._nodeWorldPosition = nodeWorldPosition;
             if (this._infoCanvas.worldCamera != null)
             {
-                this._nodeScreenPosition = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)this._nodeWorldPosition);
-                //this._nodeScreenPosition = 
+                //this._nodeScreenPosition = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)this._nodeWorldPosition);
+                this._nodeScreenPosition = (Vector3)this._nodeWorldPosition;
                 this._cameraDistance = Vector3d.Distance(this._nodeWorldPosition, this._infoCanvas.worldCamera.transform.position);
             }
         }
@@ -255,7 +274,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (!this._orbitLine.Data.ShowOrbitLine)
             {
-                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log A");
+                //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log A");
                 this._lockedNodeIcon.enabled = false;
                 this._selectNodeIcon.enabled = false;
                 this._deleteNodeIcon.enabled = false;
@@ -263,7 +282,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             if (this._nodeScreenPosition.z <= 0f)
             {
-                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log B");
+                //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log B");
                 this._maneuverNodeAdjustorContainer.gameObject.SetActive(false);
                 //this.CompleteGizmoAnimations();
                 this._lockedNodeIcon.enabled = false;
@@ -271,7 +290,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.enabled = false;
                 return;
             }
-                Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
+                //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
