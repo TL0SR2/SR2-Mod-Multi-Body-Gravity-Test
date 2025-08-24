@@ -5,6 +5,7 @@ using ModApi.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
+using UnityEditor.Experimental.GraphView;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -24,7 +25,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 RemoveMBGOrbit(node as CraftNode);
             };
-            Time_ThrustAcc_Dic.Add(startTime, new MBGManeuverNode(null, new MBGOrbitPoint(new P_V_Pair(startPosition, startVelocity), startTime), new Vector3d()));
+            //Time_ThrustAcc_Dic.Add(startTime, new MBGManeuverNode(null, new MBGOrbitPoint(new P_V_Pair(startPosition, startVelocity), startTime), new Vector3d()));
             //MathCalculator = new MBGMath(this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
             try
@@ -352,36 +353,37 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return new Vector3d();
             }
             int i = 0;
-            KeyValuePair<double, MBGManeuverNode> TempPair = new KeyValuePair<double, MBGManeuverNode>();
+            //KeyValuePair<double, MBGManeuverNode> TempPair = new KeyValuePair<double, MBGManeuverNode>();
             try
             {
                 foreach (var Pair in Dic)
                 {
-                    if (((i == 0) && (time < (Pair.Key - MBGOrbit.EngineActivateTime))) || ((i >= Dic.Count - 1) && (time > (Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime))))
+                    Debug.Log($"TL0SR2 MBG Orbit -- GetThrustAcc -- Log Data i {i} time {time} Pair Start {Pair.Key}  Pair Continue {Pair.Value.ThrustTime}");
+                    if (((i == 0) && (time <= (Pair.Key - MBGOrbit.EngineActivateTime))) || ((i >= Dic.Count - 1) && (time >= (Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime))))
                     {
                         return new Vector3d();
                     }
-                    if (time < Pair.Key)
+                    if (time < Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime)
                     {
-                        if (time < (TempPair.Key + TempPair.Value.ThrustTime))
+                        if (time > Pair.Key + Pair.Value.ThrustTime)
                         {
-                            return TempPair.Value.AccVec;
+                            return MBGMath.LinearInterpolation(Pair.Value.AccVec, new Vector3d(), Pair.Key + Pair.Value.ThrustTime, Pair.Key + Pair.Value.ThrustTime + MBGOrbit.EngineActivateTime, time);
                         }
-                        else if (time < (TempPair.Key + TempPair.Value.ThrustTime + MBGOrbit.EngineActivateTime))
+                        if (time > Pair.Key)
                         {
-                            return MBGMath.LinearInterpolation(TempPair.Value.AccVec, new Vector3d(), TempPair.Key + TempPair.Value.ThrustTime, TempPair.Key + TempPair.Value.ThrustTime + MBGOrbit.EngineActivateTime, time);
+                            return Pair.Value.AccVec;
                         }
-                        else if (time > (Pair.Key - MBGOrbit.EngineActivateTime))
+                        if (time > Pair.Key - MBGOrbit.EngineActivateTime)
                         {
                             return MBGMath.LinearInterpolation(new Vector3d(), Pair.Value.AccVec, Pair.Key - MBGOrbit.EngineActivateTime, Pair.Key, time);
                         }
-                        else return new Vector3d();
+                        return new Vector3d();
                     }
-                    TempPair = Pair;
+                    //TempPair = Pair;
                     i++;
                 }
                 Debug.LogError($"TL0SR2 MBG Orbit -- GetThrustAcc -- Unexpected Code Return -- Detailed Data i {i} Count {Dic.Count}");
-                return TempPair.Value.AccVec;
+                return Dic.Last().Value.AccVec;
             }
             catch (Exception e)
             {
