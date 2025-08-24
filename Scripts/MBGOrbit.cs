@@ -20,6 +20,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             TLPList.Add(new MBGOrbit_Time_ListNPair(startTime, 1, 0));
             SetMBGOrbit(craftNode, this);
             CurrentCraft = craftNode;
+            craftNode.Destroyed += node =>
+            {
+                this.CraftDestroyed = true;
+                Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanging -= e => this.ChangeTimeActivate(e);
+            };
             Time_ThrustAcc_Dic.Add(startTime, new MBGManeuverNode(null, new MBGOrbitPoint(new P_V_Pair(startPosition, startVelocity), startTime), new Vector3d()));
             //MathCalculator = new MBGMath(this);
             Game.Instance.FlightScene.TimeManager.TimeMultiplierModeChanged += e => ChangeTimeActivate(e);
@@ -51,7 +56,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                if (GetCraft(this) != null)
+                if ((this.CurrentCraft!=null)&&(!this.CraftDestroyed))
                 {
                     double time1 = startTime;
                     if (CalculateAfterWarp)
@@ -389,7 +394,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
         {
-            if (GetCraft(this) != null)
+            if ((this.CurrentCraft!=null)&&(!CraftDestroyed))
             {
                 Debug.Log($"TL0SR2 MBG Orbit -- Change Time Mode -- New Time Mode {e.CurrentMode.TimeMultiplier}");
                 double NewMultiplier = e.CurrentMode.TimeMultiplier;
@@ -535,6 +540,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private static Dictionary<CraftNode, MBGOrbit> craftNodeOrbitMap = new Dictionary<CraftNode, MBGOrbit>();
 
         public CraftNode CurrentCraft;
+
+        public bool CraftDestroyed = false;
 
         public MBGMapOrbitInfo orbitInfo;
 
