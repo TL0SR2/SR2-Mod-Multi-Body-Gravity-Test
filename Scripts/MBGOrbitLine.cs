@@ -300,7 +300,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void AddManeuverNode(MBGOrbitPoint orbitPoint)
         {
-            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.Camera, this._nodeAdderGraphicContainer.transform, this, orbitPoint, node => this.ConfirmManeuverNode(node));
+            //MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.Camera, this._nodeAdderGraphicContainer.transform, this, orbitPoint, node => this.ConfirmManeuverNode(node));
         }
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
