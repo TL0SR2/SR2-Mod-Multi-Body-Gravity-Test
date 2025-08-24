@@ -299,11 +299,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
         {
+            Debug.LogWarning("TL0SR2 MBG Orbit Line -- TestAddManeuverNode Log -- Test Method No Use Any More");
+            /*
             int n = this.MBGOrbit.GetPVNFromTime(Time, out _, out _);
             MBGManeuverNode maneuverNode = new MBGManeuverNode(this, MBGOrbit.MBG_PointList[n], DeltaV);
             //maneuverNodeList.Add(maneuverNode);
             //Debug.Log($"Test Add ManeuverNode at n {n} DeltaV {DeltaV}");
             ConfirmManeuverNode(maneuverNode);
+            */
         }
 
         public void ConfirmManeuverNode(MBGManeuverNode maneuverNode)

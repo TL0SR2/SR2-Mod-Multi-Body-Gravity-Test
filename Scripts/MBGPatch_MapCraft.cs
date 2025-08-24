@@ -14,6 +14,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static Dictionary<MapCraft, MapCraftPostscript> MapCraft_PostScript_Dic = new Dictionary<MapCraft, MapCraftPostscript> { };
         public static Type MapCraftType = AccessTools.TypeByName("Assets.Scripts.Flight.MapView.Items.MapCraft");
 
+        public static event Action<object> OnBeforeCameraPositionedEvent;
+        public static event Action<object> OnAfterCameraPositionedEvent;
         
         [HarmonyPatch]
         public class MBGPatch_Constructor
@@ -89,6 +91,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     MapCraft_PostScript_Dic[__instance].MBGOrbitLine.UpdateLine();
                 }
+                OnBeforeCameraPositionedEvent?.Invoke(null);
             }
 
         }
@@ -109,6 +112,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     MapCraft_PostScript_Dic.Remove(__instance);
                 }
                 finally{}
+            }
+
+        }
+        [HarmonyPatch]
+        public class MBGPatch_OnAfterCameraPositioned
+        {
+            [HarmonyTargetMethod]
+            public static MethodBase TargetMethod()
+            {
+                return AccessTools.Method(MapCraftType, "OnAfterCameraPositioned", new Type[] { });
+            }
+
+            public static void Postfix(MapCraft __instance)
+            {
+                OnAfterCameraPositionedEvent?.Invoke(null);
             }
 
         }

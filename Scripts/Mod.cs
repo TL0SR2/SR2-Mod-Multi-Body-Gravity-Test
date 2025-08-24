@@ -35,6 +35,7 @@ namespace Assets.Scripts
             DevConsoleService.Instance.RegisterCommand<int>("Multi Body Gravity -- Set Rotate Reference Mode", value => MBGOrbitLine.SetReferenceMode(value));
             DevConsoleService.Instance.RegisterCommand<double>("Multi Body Gravity -- Set Long Prediction Ratio", value => MBGOrbit.SetLongPredictionRatio(value));
             DevConsoleService.Instance.RegisterCommand<int>("Multi Body Gravity -- Set Lagrange Point Reference Mode", value => MBGOrbitLine.ChangeLPointType(value));
+            /*
             DevConsoleService.Instance.RegisterCommand<double, double, double, double>("Multi Body Gravity -- Test Add Maneuver Node", (time, vx, vy, vz) =>
             {
                 Vector3d DV = new Vector3d(vx, vy, vz);
@@ -42,6 +43,7 @@ namespace Assets.Scripts
                 MBGOrbit orbit = MBGOrbit.GetMBGOrbit(craft);
                 orbit.orbitInfo._orbitLine.TestAddManeuverNode(time + MBGOrbit.CurrentTime, DV);
             });
+            */
             new Harmony("com.TL0SR2.MultiBodyGravityTest").PatchAll();
         }
 

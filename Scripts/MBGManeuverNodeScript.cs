@@ -46,6 +46,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._point = point;
             this.UpdateManeuverVectors();
             this.InitializeUi();
+            MBGPatch_MapCraft.OnAfterCameraPositionedEvent += sender => this.OnAfterCameraPositioned();
         }
 
 
@@ -139,6 +140,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
             this._gizmoState = state;
         }
+        /*
+        private void Update()
+        {
+            
+        }
+        */
 
         public override void OnAfterCameraPositioned()
         {
