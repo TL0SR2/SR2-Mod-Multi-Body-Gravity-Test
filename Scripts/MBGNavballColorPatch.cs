@@ -1,4 +1,3 @@
-using Assets.Scripts.Flight.Sim.MBG;
 using Assets.Scripts.Flight.UI.Navball;
 using HarmonyLib;
 using ModApi.Flight.UI;

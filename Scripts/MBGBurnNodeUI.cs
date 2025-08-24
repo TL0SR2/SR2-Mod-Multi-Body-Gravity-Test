@@ -1,18 +1,6 @@
 using System;
-using System.Collections.Generic;
-using Assets.Scripts.Flight.MapView.Interfaces;
-using Assets.Scripts.Flight.MapView.Items;
-using Assets.Scripts.Flight.MapView.Orbits;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes.Interfaces;
-using Assets.Scripts.Flight.MapView.UI;
 using Assets.Scripts.Flight.Sim;
 using Assets.Scripts.Flight.Sim.MBG;
-using JetBrains.Annotations;
-using ModApi;
-using ModApi.Craft;
-using ModApi.Flight.MapView;
-using ModApi.Flight.Sim;
 using ModApi.Ui.Inspector;
 using UnityEngine;
 

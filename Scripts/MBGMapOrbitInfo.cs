@@ -1,17 +1,10 @@
-using System;
 using Assets.Scripts.Flight.MapView.Interfaces;
 using Assets.Scripts.Flight.MapView.Interfaces.Contexts;
 using Assets.Scripts.Flight.MapView.Items;
 using Assets.Scripts.Flight.MapView.Orbits;
-using Assets.Scripts.Flight.MapView.Orbits.Chain;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
-using Assets.Scripts.Flight.Sim;
 using ModApi.Common.Events;
-using ModApi.Flight.MapView;
-using ModApi.Flight.Sim;
 using ModApi.Ioc;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {

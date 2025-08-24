@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms.VisualStyles;
 using System.Xml.Linq;
 using ModApi.Ui;
 using UnityEngine;
-using ModApi.Flight;
-using ModApi.Flight.Events;
-using ModApi.Flight.GameView;
-using ModApi.Math;
 using ModApi.Scenes.Events;
 using ModApi.Ui.Inspector;
 using Assets.Scripts.Flight.Sim.MBG;

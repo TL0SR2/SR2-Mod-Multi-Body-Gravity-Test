@@ -1,13 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 using ModApi.Flight.Sim;
-using Assets.Scripts.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
-using Assets.Scripts.Flight.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {

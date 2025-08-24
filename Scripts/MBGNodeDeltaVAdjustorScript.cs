@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Assets.Scripts.Flight.MapView.Interfaces;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes.Interfaces;
 using Assets.Scripts.Flight.MapView.UI;
 using Assets.Scripts.Ui;
 using ModApi;
-using ModApi.Flight.MapView;
-using ModApi.Ioc;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;

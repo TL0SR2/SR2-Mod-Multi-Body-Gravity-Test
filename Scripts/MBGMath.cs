@@ -1,8 +1,6 @@
 using System;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
 //using MathNet.Numerics.LinearAlgebra.Double;
 //using MathNet.Numerics.LinearAlgebra;
 namespace Assets.Scripts.Flight.Sim.MBG

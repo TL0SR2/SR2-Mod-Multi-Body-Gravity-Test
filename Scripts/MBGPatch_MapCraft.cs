@@ -1,20 +1,11 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using Assets.Scripts.Flight.MapView.Items;
 using ModApi.Flight.MapView;
-using ModApi.Flight.Sim;
-using Assets.Scripts.Craft;
-using ModApi.Craft;
 using System.Reflection;
-using Assets.Scripts.Flight.Sim.MBG;
-using Assets.Scripts.State;
 using System;
-using ModApi.Scripts.State;
-using System.Xml.Linq;
 using Assets.Scripts.Flight.MapView.UI;
-using Assets.Scripts.Ui;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {

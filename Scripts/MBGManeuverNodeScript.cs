@@ -1,33 +1,12 @@
 using System;
-using System.Collections.Generic;
-using Assets.Scripts.Flight.MapView.Interfaces;
-using Assets.Scripts.Flight.MapView.Interfaces.Contexts;
 using Assets.Scripts.Flight.MapView.Items;
-using Assets.Scripts.Flight.MapView.Orbits;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
-using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes.Interfaces;
-using UnityEngine.EventSystems;
-using Assets.Scripts.Flight.MapView.Orbits.DrawModes;
-using Assets.Scripts.Flight.MapView.Orbits.DrawModes.Interfaces.IDrawMode;
-using Assets.Scripts.Flight.MapView.Orbits.Interfaces;
 using Assets.Scripts.Flight.MapView.UI;
-using Assets.Scripts.Flight.Sim;
 using ModApi;
 using ModApi.Flight.MapView;
 using ModApi.Flight.Sim;
-using ModApi.Ioc;
 using ModApi.Math;
-using ModApi.State.MapView;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
-using Vectrosity;
-using Assets.Scripts.Flight.MapView;
-using ModApi.Common.UI;
-using Assets.Scripts.Career.Contracts.Requirements;
-using ModApi.Common.Extensions;
-using Assets.Scripts.Flight.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {

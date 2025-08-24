@@ -1,19 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using HarmonyLib;
 using Assets.Scripts.Flight.MapView.Items;
-using ModApi.Flight.MapView;
-using ModApi.Flight.Sim;
-using Assets.Scripts.Craft;
-using Assets.Scripts.Flight.MapView.Orbits;
 using System.Reflection;
-using Assets.Scripts.Flight.Sim.MBG;
 using Assets.Scripts.Flight.MapView.Interfaces.Contexts;
 using System;
-using ModApi.Ioc;
-using System.Xml.Linq;
-using Assets.Scripts.Flight.MapView.Interfaces;
 using Assets.Scripts.Flight.MapView.Orbits.Chain.ManeuverNodes;
 
 namespace Assets.Scripts.Flight.Sim.MBG

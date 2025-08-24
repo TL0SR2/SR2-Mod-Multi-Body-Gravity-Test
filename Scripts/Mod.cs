@@ -2,17 +2,9 @@ using HarmonyLib;
 
 namespace Assets.Scripts
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using ModApi;
-    using ModApi.Common;
-    using ModApi.Mods;
     using UnityEngine;
     using Assets.Scripts.DevConsole;
     using Assets.Scripts.Flight.Sim.MBG;
-    using UnityEngine.VFX;
     using Assets.Scripts.Flight.Sim;
 
     /// <summary>
