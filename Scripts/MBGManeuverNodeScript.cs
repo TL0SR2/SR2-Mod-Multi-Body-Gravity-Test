@@ -29,6 +29,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static MBGManeuverNodeScript Create(Camera camera, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
         {
             MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
+            //MBGManeuverNodeScript maneuverNodeScript = MapItem.Create<MBGManeuverNodeScript>(orbitLine.Ioc,orbitLine.MapViewContext,)
             maneuverNodeScript.ConfirmBurn = action;
             maneuverNodeScript.name = "MBGBurnNode";
             maneuverNodeScript.transform.SetParent(parent);
@@ -47,6 +48,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this.UpdateManeuverVectors();
             this.InitializeUi();
             MBGPatch_MapCraft.OnAfterCameraPositionedEvent += sender => this.OnAfterCameraPositioned();
+            InitComplete = true;
         }
 
 
@@ -149,15 +151,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public override void OnAfterCameraPositioned()
         {
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 1");
-            base.OnAfterCameraPositioned();
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 2");
-            this.UpdateManeuverVectors();
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 3");
-            this.UpdatePositions();
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 4");
-            this.UpdateUI();
-            Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 5");
+            if (this.InitComplete)
+            {
+                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 1");
+                //base.OnAfterCameraPositioned();
+                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 2");
+                this.UpdateManeuverVectors();
+                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 3");
+                this.UpdatePositions();
+                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 4");
+                this.UpdateUI();
+                Debug.Log("TL0SR2 -- MBG Maneuver Node Script -- OnAfterCameraPositioned Log 5");
+            }
         }
         private MBGNodeDeltaVAdjustorScript CreateAdjustor(Func<Vector3d> maneuverVec, string iconName, Color color, bool subscribeToEvents = true, string name = null)
 		{
@@ -377,6 +382,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public override ICameraFocusable AssociatedPlanetCameraFocusable => _orbitLine.AssociatedPlanetCameraFocusable;
 
         private Action<MBGManeuverNode> ConfirmBurn;
+        public bool InitComplete { get; private set; } = false;
 
         public float _deltaVAdjustmentSensitivityLinear { get; private set; } = 1f;
         public float _deltaVAdjustmentSensitivityExpo { get; private set; } = 1f;
