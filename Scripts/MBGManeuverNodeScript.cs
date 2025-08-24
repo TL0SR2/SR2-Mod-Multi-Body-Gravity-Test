@@ -63,7 +63,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             GameObject gameObject = base.gameObject;
             this._infoCanvas = gameObject.AddComponent<Canvas>();
             this._infoCanvas.gameObject.AddComponent<GraphicRaycaster>();
-            this._infoCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            this._infoCanvas.renderMode = RenderMode.ScreenSpaceCamera;
             this._infoCanvas.worldCamera = this._camera;
             this._infoCanvas.overrideSorting = true;
             this._infoCanvas.sortingOrder = -1;
