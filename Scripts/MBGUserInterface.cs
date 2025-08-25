@@ -9,6 +9,7 @@ using ModApi.Ui.Inspector;
 using Assets.Scripts.Flight.Sim.MBG;
 using ModApi.Craft;
 using ModApi.Flight.Sim;
+using ModApi.Ui.Events;
 
 namespace Assets.Scripts
 {
@@ -51,23 +52,49 @@ namespace Assets.Scripts
             if (e.Scene == "Flight")
             {
                 PlanetNameList.Clear();
-                
                 Game.Instance.FlightScene.PlayerChangedSoi+=OnPlayerChangedSoi;
                 foreach (var planet in Game.Instance.FlightScene.FlightState.SolarSystemData.Planets)
                 {
                     PlanetNameList.Add(planet.Name);
                 }
-               
 
-                if (Game.Instance.FlightScene.CraftNode != null && MBGOrbitLine.Instance != null)
+
+                try
                 {
+
                     CreateInspectorPanel();
+                    inspectorPanel.Visible = false;
+                    inspectorPanel.CloseButtonClicked += OnCloseButtonClicked;
+                    inspectorPanel.Closed += OnInspectorPanelClosed;
+                    Debug.Log("MBGUI: InspectorPanel created from OnSceneLoaded");
+
                 }
-                else
+                catch (Exception ex)
                 {
-                    Debug.LogWarning("Cannot create inspector panel: CraftNode or MBGOrbitLine is null");
+                    Debug.LogError(": Error creating InspectorPanel: " + ex);
                 }
             }
+        }
+
+        private void OnCloseButtonClicked(IInspectorPanel model)
+        {
+            if (model == null)
+            {
+                Debug.LogWarning("CloseButtonClicked: model is null");
+            }
+            inspectorPanel.Visible = false;
+            //Debug.Log("MBGUI: CloseButtonClicked");
+           // Debug.LogFormat("MBGUI: CloseButtonClicked, model: {0}", model.GenerateRestoreState());
+            
+        }
+
+        private void OnInspectorPanelClosed(IInspectorPanel model)
+        {
+            if (model == null)
+            {
+                Debug.LogWarning("OnInspectorPanelClosed: model is null");
+            }
+            //Debug.Log("MBGUI: InspectorPanelClosed");
         }
 
         private void OnChangeReferencePlanetEvent(object sender, string name)
@@ -107,6 +134,7 @@ namespace Assets.Scripts
         //我操什么叫做这个就是released的时候UI???
         public void ToggleMGBUI()
         {
+            
             //已禁用
             MBGBurnNodeUI.Instance.Toggle();
             try
@@ -125,7 +153,6 @@ namespace Assets.Scripts
 
         private void CreateInspectorPanel()
         {
-            
             inspectorModel = new InspectorModel("BGM-UI-Settings", "<color=green>多体引力测试UI");
 
             // Dropdown for Current Planet Reference
