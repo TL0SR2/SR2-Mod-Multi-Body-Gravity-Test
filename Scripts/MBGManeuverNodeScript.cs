@@ -48,7 +48,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._orbitLine = orbitLine;
             this._camera = orbitLine.Camera;
             this._point = point;
-            this._infoCanvas = canvas;
+            //this._infoCanvas = canvas;
             MapItem.ItemClicked += this.OnPointerClick;
             this.UpdateManeuverVectors();
             this.InitializeUi();
@@ -86,7 +86,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._addNodeIcon.enabled = false;
             */
 
-            /*
+            
             GameObject gameObject = new GameObject("infoCanvas");
             this._infoCanvas = gameObject.AddComponent<Canvas>();
             this._infoCanvas.gameObject.layer = this._orbitLine.gameObject.layer;
@@ -98,7 +98,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._infoCanvas.sortingOrder = -5;
             this._infoCanvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
             Utilities.FixUnityCanvasSortingBug(_infoCanvas);
-            */
+            
             this._maneuverNodeAdjustorContainer = new GameObject("BurnNodeAdjustorContainer").transform;
             this._maneuverNodeAdjustorContainer.SetParent(this._infoCanvas.transform);
             this._maneuverNodeAdjustorContainer.localScale = Vector3.one;
