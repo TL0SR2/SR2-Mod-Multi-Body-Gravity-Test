@@ -113,7 +113,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
 
             GameObject gameObject2 = new GameObject("BurnNodeSelection");
-            gameObject2.transform.SetParent(this._infoCanvas.transform);
+            gameObject2.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
             this._selectNodeIcon = gameObject2.AddComponent<Image>();
             this._selectNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._selectNodeIcon.transform.localScale = Vector3.one;
@@ -122,7 +122,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
             this._selectNodeIcon.enabled = true;
             GameObject gameObject3 = new GameObject("BurnLocked");
-            gameObject3.transform.SetParent(this._infoCanvas.transform);
+            gameObject3.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
             this._lockedNodeIcon = gameObject3.AddComponent<Image>();
             this._lockedNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._lockedNodeIcon.transform.localScale = Vector3.one;
@@ -131,7 +131,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lockedNodeIcon.enabled = false;
             this._selectNodeIconSize = new Vector2(this._selectNodeIcon.rectTransform.sizeDelta.x * this._selectNodeIcon.transform.localScale.x, this._selectNodeIcon.rectTransform.sizeDelta.y * this._selectNodeIcon.transform.localScale.y);
             GameObject gameObject4 = new GameObject("BurnNodeDeletion");
-            gameObject4.transform.SetParent(this._infoCanvas.transform);
+            gameObject4.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
             this._deleteNodeIcon = gameObject4.AddComponent<Image>();
             this._deleteNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._deleteNodeIcon.transform.localScale = Vector3.one;

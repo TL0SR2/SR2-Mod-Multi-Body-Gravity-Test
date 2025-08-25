@@ -211,7 +211,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 5) && Distance < distance)
+                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.5) && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
