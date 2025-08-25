@@ -113,16 +113,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
 
             GameObject gameObject2 = new GameObject("BurnNodeSelection");
-            gameObject2.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
+            gameObject2.transform.SetParent(this._infoCanvas.transform);
             this._selectNodeIcon = gameObject2.AddComponent<Image>();
             this._selectNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._selectNodeIcon.transform.localScale = Vector3.one;
             this._selectNodeIcon.sprite = UiUtils.LoadIconSprite("Sphere");
             this._selectNodeIcon.color = new Color(0, 1, 1, 1f);
-            this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
+            //this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
+            this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
+            this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
             this._selectNodeIcon.enabled = true;
             GameObject gameObject3 = new GameObject("BurnLocked");
-            gameObject3.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
+            gameObject3.transform.SetParent(this._infoCanvas.transform);
             this._lockedNodeIcon = gameObject3.AddComponent<Image>();
             this._lockedNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._lockedNodeIcon.transform.localScale = Vector3.one;
@@ -131,7 +133,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lockedNodeIcon.enabled = false;
             this._selectNodeIconSize = new Vector2(this._selectNodeIcon.rectTransform.sizeDelta.x * this._selectNodeIcon.transform.localScale.x, this._selectNodeIcon.rectTransform.sizeDelta.y * this._selectNodeIcon.transform.localScale.y);
             GameObject gameObject4 = new GameObject("BurnNodeDeletion");
-            gameObject4.transform.SetParent(this._maneuverNodeAdjustorContainer.transform);
+            gameObject4.transform.SetParent(this._infoCanvas.transform);
             this._deleteNodeIcon = gameObject4.AddComponent<Image>();
             this._deleteNodeIcon.gameObject.layer = this._infoCanvas.gameObject.layer;
             this._deleteNodeIcon.transform.localScale = Vector3.one;
@@ -296,6 +298,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
+            this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(this._nodeScreenPosition - this._infoCanvas.worldCamera.transform.position);
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
             double d = Mathd.Tan(0.01745329 * (double)(4 * (Game.Instance.Device.IsMobileBuild ? 3 : 2))) * this._cameraDistance * (double)Game.UiScale;
             Vector3d a = (this._camera.transform.up + this._camera.transform.right).normalized;
