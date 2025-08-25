@@ -28,7 +28,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
-        public static MBGManeuverNodeScript Create(Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
+        public static MBGManeuverNodeScript Create(Canvas canvas,Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
         {
             MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
             //MBGManeuverNodeScript maneuverNodeScript = MapItem.Create<MBGManeuverNodeScript>(orbitLine.Ioc,orbitLine.MapViewContext,)
@@ -36,17 +36,18 @@ namespace Assets.Scripts.Flight.Sim.MBG
             maneuverNodeScript.name = "MBGBurnNode";
             maneuverNodeScript.transform.SetParent(parent);
             maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
-            maneuverNodeScript.Initialize(orbitLine, point);
+            maneuverNodeScript.Initialize(orbitLine, point,canvas);
             maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d());
 
             return maneuverNodeScript;
         }
 
-        private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point)
+        private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point,Canvas canvas)
         {
             this._orbitLine = orbitLine;
             this._camera = orbitLine.Camera;
             this._point = point;
+            this._infoCanvas = canvas;
             this.UpdateManeuverVectors();
             this.InitializeUi();
             MBGPatch_MapCraft.OnAfterCameraPositionedEvent += sender => this.OnAfterCameraPositioned();
@@ -78,6 +79,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._addNodeIcon.enabled = false;
             */
 
+            /*
             GameObject gameObject = new GameObject("infoCanvas");
             this._infoCanvas = gameObject.AddComponent<Canvas>();
             this._infoCanvas.gameObject.layer = this._orbitLine.gameObject.layer;
@@ -89,6 +91,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._infoCanvas.sortingOrder = -5;
             this._infoCanvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
             Utilities.FixUnityCanvasSortingBug(_infoCanvas);
+            */
             this._maneuverNodeAdjustorContainer = new GameObject("BurnNodeAdjustorContainer").transform;
             this._maneuverNodeAdjustorContainer.SetParent(this._infoCanvas.transform);
             this._maneuverNodeAdjustorContainer.localScale = Vector3.one;

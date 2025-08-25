@@ -294,7 +294,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void AddManeuverNode(MBGOrbitPoint orbitPoint)
         {
-            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
+            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this._infocanvas,this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
         }
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
@@ -426,11 +426,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             NodeAdder.layer = this.gameObject.layer;
             NodeAdder.AddComponent<GraphicRaycaster>();
 
-            Canvas canvas = NodeAdder.AddMissingComponent<Canvas>();
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = -1;
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = this.Camera;
+            _infocanvas = NodeAdder.AddMissingComponent<Canvas>();
+            _infocanvas.overrideSorting = true;
+            _infocanvas.sortingOrder = -1;
+            _infocanvas.renderMode = RenderMode.ScreenSpaceCamera;
+            _infocanvas.worldCamera = this.Camera;
 
             this._nodeAdderGraphicContainer = new GameObject("GraphicContainer");
             this._nodeAdderGraphicContainer.transform.SetParent(NodeAdder.transform);
@@ -443,8 +443,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._addNodeIcon.transform.SetParent(this._nodeAdderGraphicContainer.transform);
             this._addNodeIcon.gameObject.layer = this.gameObject.layer;
             this._addNodeIcon.enabled = false;
-            canvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
-            Utilities.FixUnityCanvasSortingBug(canvas);
+            _infocanvas.gameObject.AddMissingComponent<OverrideSortingOnStart>();
+            Utilities.FixUnityCanvasSortingBug(_infocanvas);
             //ManeuverNodeManagerScript maneuverNodeManagerScript = this.gameObject.GetComponentInParent<ManeuverNodeManagerScript>();
             //Debug.Log("TL0SR2 MBG OrbitLine -- Initialize Log 1");
             Vector2 value = new Vector2(0.5f, 0f);
@@ -888,6 +888,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public MBGOrbitPoint PointerPoint;
         //光标指向位置的太阳坐标
+
+        private Canvas _infocanvas;
 
         public List<MBGManeuverNode> maneuverNodeList = new List<MBGManeuverNode>();
 
