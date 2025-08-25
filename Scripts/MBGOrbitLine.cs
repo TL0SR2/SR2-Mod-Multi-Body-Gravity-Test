@@ -21,6 +21,7 @@ using Vectrosity;
 using Assets.Scripts.Flight.MapView;
 using ModApi.Common.UI;
 using ModApi.Common.Extensions;
+using System.Linq;
 
 //当前的开发进度：专注于完成让VectorLine正常绘制的代码（包括绘制和摄像机显示），////将轨道点火节点等功能一律关闭
 //轨道特殊点（包括与行星的撞击点）暂不启用
@@ -222,17 +223,29 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     this._nodeAdderGraphicContainer.transform.position = (Vector3)Targetpoint;
                     this.PointerPoint = orbitPoint;
-                    this._addNodeIcon.enabled = true;
-                    this.AllowAddNode = true;
-                    double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.02;
-                    this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)size);
-                    this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)size);
+                    //MBGManeuverNode maneuverNode = this.MBGOrbit.CloseToExistNode(orbitPoint, 300);
+                    //if (maneuverNode == null)
+                    //{
+                        this._addNodeIcon.enabled = true;
+                        this.AllowAddNode = true;
+                        double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.02;
+                        this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, (float)size);
+                        this._addNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (float)size);
 
-                    if (UnityEngine.Input.GetMouseButtonDown(0))
-                    {
-                        this.AllowAddNode = false;
-                        this.PointerDown(orbitPoint);
-                    }
+                        if (UnityEngine.Input.GetMouseButtonDown(0))
+                        {
+                            this.AllowAddNode = false;
+                            this.PointerDown(orbitPoint);
+                        }
+                    //}
+                    //else
+                    //{
+                    //    if (UnityEngine.Input.GetMouseButtonDown(0))
+                    //    {
+                    //        this.AllowAddNode = false;
+                    //        maneuverNode.nodeScript.OnSelected();
+                    //    }
+                    //}
 
                 }
                 else
@@ -314,7 +327,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             this.AllowAddNode = true;
             Debug.Log($"TL0SR2 MBG Orbit Line -- [Test] Add ManeuverNode At Time {maneuverNode.ManeuverPoint.Time}");
-            maneuverNodeList.Add(maneuverNode);
             MBGOrbit.AddOrChangeManeuverNode(maneuverNode.ManeuverPoint.Time, maneuverNode);
         }
 
@@ -891,7 +903,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private Canvas _infocanvas;
 
-        public List<MBGManeuverNode> maneuverNodeList = new List<MBGManeuverNode>();
+        //public List<MBGManeuverNode> maneuverNodeList = new List<MBGManeuverNode>();
 
         public bool AllowAddNode = false;
         //指示当前是否允许添加点火节点（即有无有效的光标指向位置）

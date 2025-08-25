@@ -19,6 +19,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public MBGOrbitPoint ManeuverPoint;
         public Vector3d DeltaV;
 
+        public MBGManeuverNodeScript nodeScript { get; private set; }
+
         public Vector3d AccVec => MaxAcc * DeltaV.normalized;
         public double ThrustTime
         {
@@ -37,11 +39,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         */
 
-        public MBGManeuverNode(MBGOrbitLine line, MBGOrbitPoint startPoint, Vector3d DV)
+        public MBGManeuverNode(MBGOrbitLine line, MBGOrbitPoint startPoint, Vector3d DV,MBGManeuverNodeScript script)
         {
             orbitLine = line;
             ManeuverPoint = startPoint;
             DeltaV = DV;
+            nodeScript = script;
             if ((MaxAcc == 0) && (DV.magnitude != 0))
             {
                 Game.Instance.UserInterface.CreateMessageDialog("Warning:No Engine Activeted.");

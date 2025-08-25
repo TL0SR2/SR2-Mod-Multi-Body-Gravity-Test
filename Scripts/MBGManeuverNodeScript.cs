@@ -8,6 +8,7 @@ using ModApi.Flight.MapView;
 using ModApi.Flight.Sim;
 using ModApi.Math;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Assets.Scripts.Flight.Sim.MBG
@@ -37,7 +38,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             maneuverNodeScript.transform.SetParent(parent);
             maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
             maneuverNodeScript.Initialize(orbitLine, point,canvas);
-            maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d());
+            maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d(), maneuverNodeScript);
 
             return maneuverNodeScript;
         }
@@ -48,10 +49,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._camera = orbitLine.Camera;
             this._point = point;
             this._infoCanvas = canvas;
+            MapItem.ItemClicked += this.OnPointerClick;
             this.UpdateManeuverVectors();
             this.InitializeUi();
             MBGPatch_MapCraft.OnAfterCameraPositionedEvent += sender => this.OnAfterCameraPositioned();
             InitComplete = true;
+        }
+
+        public void OnPointerClick(object sender, MapItem.ItemClickedEventArgs eventArgs)
+        {
+            Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log");
         }
 
 
@@ -172,6 +179,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             
         }
         */
+
+        public void OnSelected()
+        {
+            throw new NotImplementedException();
+        }
 
         public override void OnAfterCameraPositioned()
         {
@@ -298,14 +310,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
-            this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(this._nodeScreenPosition - this._infoCanvas.worldCamera.transform.position);
+            this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(_selectNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
+            this._lockedNodeIcon.transform.rotation = Quaternion.LookRotation(_lockedNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
             double d = Mathd.Tan(0.01745329 * (double)(4 * (Game.Instance.Device.IsMobileBuild ? 3 : 2))) * this._cameraDistance * (double)Game.UiScale;
             Vector3d a = (this._camera.transform.up + this._camera.transform.right).normalized;
             Vector3d vector3d = this._nodeWorldPosition + a * d;
             if (this._infoCanvas.isActiveAndEnabled)
             {
                 this._deleteNodeIcon.transform.position = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)vector3d);
+                this._deleteNodeIcon.transform.rotation = Quaternion.LookRotation(this._deleteNodeIcon.transform.position, this._infoCanvas.worldCamera.transform.position);
             }
             this._selectNodeIcon.enabled = true;
 			this._lockedNodeIcon.enabled = this.Locked;

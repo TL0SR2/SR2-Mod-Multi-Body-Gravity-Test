@@ -528,6 +528,35 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             _MaxLongRangeCalculateTime = value;
         }
+        /*
+
+        public bool CloseToExistNode(MBGOrbitPoint point,double AllowDeltaTime)
+        //返回指定的point点前后AllowDeltaTime的时间范围内有无已经存在的轨道点火节点  如果存在，返回true 否则false
+        {
+            return Time_ThrustAcc_Dic.Select(pair => Math.Abs(pair.Key - point.Time) <= AllowDeltaTime) != null;
+        }
+
+        */
+
+        public MBGManeuverNode CloseToExistNode(MBGOrbitPoint point, double AllowDeltaTime)
+        //返回指定的point点前后AllowDeltaTime的时间范围内有无已经存在的轨道点火节点  如果存在，返回最近的节点 否则返回空值
+        {
+            var Nodes =
+            from pair in Time_ThrustAcc_Dic
+            where Math.Abs(pair.Key - point.Time) < AllowDeltaTime
+            select pair.Value;
+            if ((Nodes == null) || (Nodes.Count() == 0)) return null;
+            //if (Nodes.Count() == 1) return Nodes.First();
+            var result = Nodes.First();
+            foreach (var node in Nodes)
+            {
+                if (Math.Abs(node.ManeuverPoint.Time - point.Time) < Math.Abs(result.ManeuverPoint.Time - point.Time))
+                {
+                    result = node;
+                }
+            }
+            return result;
+        }
 
         public MBGOrbitPointSet GetMBGOrbitPointSet()
         {
@@ -589,6 +618,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //指定当前轨道已经经过了多少次重新计算
 
         private SortedDictionary<double, MBGManeuverNode> Time_ThrustAcc_Dic = new SortedDictionary<double, MBGManeuverNode>();
+
+        //public SortedDictionary<double, MBGManeuverNode> Time_Node_Dic => Time_ThrustAcc_Dic;
 
         public static double EngineActivateTime = 1;
 
