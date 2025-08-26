@@ -6,6 +6,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
     {
         public MBGOrbitLine orbitLine;
 
+        public Vector3d ScreenPosition => this.orbitLine.CoordinateConverter.ConvertSolarToMapView(this.orbitLine.GetPointSolarPosition(this.ManeuverPoint));
+
         private MBGOrbit orbit => orbitLine.MBGOrbitInfo.MBGOrbit;
 
         private CraftNode craft => orbit.CurrentCraft;

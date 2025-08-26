@@ -277,14 +277,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
 		}
         private void UpdatePositions()
         {
-            Vector3d solarPositionAtCurrent = this._orbitLine.GetPointSolarPosition(this._point);
-            Vector3d nodeWorldPosition = this._orbitLine.CoordinateConverter.ConvertSolarToMapView(solarPositionAtCurrent);
-            this._nodeWorldPosition = nodeWorldPosition;
+            //Vector3d solarPositionAtCurrent = this._orbitLine.GetPointSolarPosition(this._point);
+            //Vector3d nodeWorldPosition = this._orbitLine.CoordinateConverter.ConvertSolarToMapView(solarPositionAtCurrent);
+            //this._nodeWorldPosition = nodeWorldPosition;
             if (this._infoCanvas.worldCamera != null)
             {
                 //this._nodeScreenPosition = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)this._nodeWorldPosition);
-                this._nodeScreenPosition = (Vector3)this._nodeWorldPosition;
-                this._cameraDistance = Vector3d.Distance(this._nodeWorldPosition, this._infoCanvas.worldCamera.transform.position);
+                //this.ScreenPosition = (Vector3)this._nodeWorldPosition;
+                this._cameraDistance = Vector3d.Distance(this.ScreenPosition, this._infoCanvas.worldCamera.transform.position);
             }
         }
 
@@ -298,7 +298,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.enabled = false;
                 return;
             }
-            if (this._nodeScreenPosition.z <= 0f)
+            /*
+            if (this.ScreenPosition.z <= 0f)
             {
                 //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log B");
                 this._maneuverNodeAdjustorContainer.gameObject.SetActive(false);
@@ -308,10 +309,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.enabled = false;
                 return;
             }
+            */
             //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
-            double size = (this._orbitLine.Camera.transform.position - this._nodeScreenPosition).magnitude * 0.2 / 20;
+            double size = (this._orbitLine.Camera.transform.position - this.ScreenPosition).magnitude * 0.2 / 20;
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
-            this._selectNodeIcon.transform.position = this._nodeScreenPosition;
+            this._selectNodeIcon.transform.position = (Vector3)this.ScreenPosition;
             this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(_selectNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
             this._selectNodeIcon.rectTransform.sizeDelta = (Vector2)(20 * size * new Vector2d(1, 1));
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
@@ -319,7 +321,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lockedNodeIcon.rectTransform.sizeDelta = (Vector2)(25 * size * new Vector2d(1, 1));
             double d = Mathd.Tan(0.01745329 * (double)(4 * (Game.Instance.Device.IsMobileBuild ? 3 : 2))) * this._cameraDistance * (double)Game.UiScale;
             Vector3d a = (this._camera.transform.up + this._camera.transform.right).normalized;
-            Vector3d vector3d = this._nodeWorldPosition + a * d;
+            Vector3d vector3d = this.WorldPosition + a * d;
             if (this._infoCanvas.isActiveAndEnabled)
             {
                 this._deleteNodeIcon.transform.position = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)vector3d);
@@ -362,7 +364,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private Camera _camera;
         private double _cameraDistance;
-        private Vector3d _nodeWorldPosition;
+        //private Vector3d _nodeWorldPosition;
         private Transform _maneuverNodeAdjustorContainer;
         private Canvas _infoCanvas;
 
@@ -373,7 +375,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private Image _selectNodeIcon;
         private Image _deleteNodeIcon;
         private Vector2 _selectNodeIconSize;
-        private Vector3 _nodeScreenPosition;
+        //private Vector3 _nodeScreenPosition;
         private Vector3d _progradeVec;
         //沿速度方向的矢量
         private Vector3d _radialVec;
@@ -387,6 +389,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
 		private MBGNodeDeltaVAdjustorScript _maneuverNodeAdjustorBeingDragged;
 
         private MBGManeuverNode maneuverNode;
+
+        public Vector3d ScreenPosition
+        {
+            get
+            {
+                return this._orbitLine.CoordinateConverter.ConvertSolarToMapView(this._orbitLine.GetPointSolarPosition(maneuverNode.ManeuverPoint));
+            }
+        }
+        public Vector3d WorldPosition
+        {
+            get
+            {
+                return this._orbitLine.GetPointSolarPosition(maneuverNode.ManeuverPoint);
+            }
+        }
 		private bool _dvChanged;
 
 		private bool _dvChangeEnd;
