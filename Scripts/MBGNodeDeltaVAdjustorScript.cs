@@ -323,6 +323,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this.Dispose();
         }
 
+
         private void StopDrag()
         {
             this._dragVec = Vector2.zero;

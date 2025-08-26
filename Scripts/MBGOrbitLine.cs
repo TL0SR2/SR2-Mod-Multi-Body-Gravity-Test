@@ -207,14 +207,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Vector3d Direction = mouseRay.direction;
                 double distance = double.PositiveInfinity;
                 MBGManeuverNode maneuverNode = null;
-                    Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Count {MBGOrbit.Time_ThrustAcc_Dic.Count}");
+                //Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Count {MBGOrbit.Time_ThrustAcc_Dic.Count}");
                 foreach (var pair in this.MBGOrbit.Time_ThrustAcc_Dic)
                 {
                     MBGManeuverNode tempManeuverNode = pair.Value;
                     Vector3d position = tempManeuverNode.ScreenPosition;
                     MBGMath_CaculationMethod.GetClosetPoint(position, StartPoint, Direction, out double Distance);
-                    Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Distance {Distance}");
-                    if (Distance <= ((this.Camera.transform.position - position).magnitude * 0.2) && Distance < distance)
+                    //Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Distance {Distance}");
+                    if (Distance <= ((this.Camera.transform.position - position).magnitude * 0.05) && Distance < distance)
                     {
                         distance = Distance;
                         maneuverNode = tempManeuverNode;
@@ -222,9 +222,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 }
                 if (!double.IsPositiveInfinity(distance))
                 {
+                    this._addNodeIcon.enabled = false;
                     if (UnityEngine.Input.GetMouseButtonDown(0))
                     {
-                        maneuverNode.nodeScript.OnPointerClick();
+                        //maneuverNode.nodeScript.OnPointerClick();
+                        MBGManeuverNodeScript.ClickNode(maneuverNode.nodeScript);
                     }
                     return;
                 }

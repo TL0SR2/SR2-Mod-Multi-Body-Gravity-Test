@@ -16,6 +16,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     //当前主要目标：把球显示出来（
     public class MBGManeuverNodeScript : MapItem, ICameraFocusable
     {
+        public static event Action<MBGManeuverNodeScript> NodePointed;
         public event CameraFocusableItemDestroyedHandler Destroyed
         {
             add
@@ -28,8 +29,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 ((ICameraFocusable)_orbitLine).Destroyed -= value;
             }
         }
+        public static void ClickNode(MBGManeuverNodeScript nodeScript)
+        {
+            NodePointed?.Invoke(nodeScript);
+        }
 
-        public static MBGManeuverNodeScript Create(Canvas canvas,Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
+        public static MBGManeuverNodeScript Create(Canvas canvas, Transform parent, MBGOrbitLine orbitLine, MBGOrbitPoint point, Action<MBGManeuverNode> action)
         {
             MBGManeuverNodeScript maneuverNodeScript = new GameObject().AddComponent<MBGManeuverNodeScript>();
             //MBGManeuverNodeScript maneuverNodeScript = MapItem.Create<MBGManeuverNodeScript>(orbitLine.Ioc,orbitLine.MapViewContext,)
@@ -38,7 +43,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             maneuverNodeScript.transform.SetParent(parent);
             maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
             maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d(), maneuverNodeScript);
-            maneuverNodeScript.Initialize(orbitLine, point,canvas);
+            maneuverNodeScript.Initialize(orbitLine, point, canvas);
 
             return maneuverNodeScript;
         }
@@ -47,6 +52,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
 
             this._orbitLine = orbitLine;
+            MBGManeuverNodeScript.NodePointed += this.OnPointerClick;
             this.ConfirmBurn?.Invoke(maneuverNode);
             this._camera = orbitLine.Camera;
             this._point = point;
@@ -58,9 +64,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
             InitComplete = true;
         }
 
-        public void OnPointerClick()
+        public void OnPointerClick(MBGManeuverNodeScript nodeScript)
         {
-            Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log 1");
+            if (nodeScript == this)
+            {
+                Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log A");
+                SetMoveAidVisible(true);
+            }
+            else
+            {
+                Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log B");
+                SetMoveAidVisible(false);
+            }
+
         }
 
 
@@ -181,11 +197,12 @@ namespace Assets.Scripts.Flight.Sim.MBG
             
         }
         */
-
+        /*
         public void OnSelected()
         {
             throw new NotImplementedException();
         }
+        */
 
         public override void OnAfterCameraPositioned()
         {
@@ -211,6 +228,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangingEvent += this.OnAdjustorChanging;
 				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangeEndEvent += this.OnAdjustorChangeEnd;
 			}
+            nodeDeltaVAdjustorScript.enabled = false;
 			return nodeDeltaVAdjustorScript;
 		}
 		private void OnAdjustorChangeBegin(MBGNodeDeltaVAdjustorScript source)
@@ -361,7 +379,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         
         private MBGNodeDeltaVAdjustorScript _movementAidGizmo;
-        //当前正在操作的节点
+        //当前正在操作的节点,大概喵
 
         private Camera _camera;
         private double _cameraDistance;
