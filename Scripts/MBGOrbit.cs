@@ -617,7 +617,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int CaculationNum = 0;
         //指定当前轨道已经经过了多少次重新计算
 
-        private SortedDictionary<double, MBGManeuverNode> Time_ThrustAcc_Dic = new SortedDictionary<double, MBGManeuverNode>();
+        public SortedDictionary<double, MBGManeuverNode> Time_ThrustAcc_Dic { get; private set; } = new SortedDictionary<double, MBGManeuverNode>();
 
         //public SortedDictionary<double, MBGManeuverNode> Time_Node_Dic => Time_ThrustAcc_Dic;
 

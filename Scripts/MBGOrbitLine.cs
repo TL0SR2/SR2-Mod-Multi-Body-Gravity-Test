@@ -200,12 +200,33 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (isPlayer)
             {
-			    //this._addNodeIcon.gameObject.layer = GameObjLayer;
-			    //this._nodeAdderGraphicContainer.layer = GameObjLayer;
+                //this._addNodeIcon.gameObject.layer = GameObjLayer;
+                //this._nodeAdderGraphicContainer.layer = GameObjLayer;
                 Ray mouseRay = Camera.main.ScreenPointToRay(UnityEngine.Input.mousePosition);
                 Vector3d StartPoint = mouseRay.origin;
                 Vector3d Direction = mouseRay.direction;
                 double distance = double.PositiveInfinity;
+                MBGManeuverNode maneuverNode = null;
+                foreach (var pair in this.MBGOrbit.Time_ThrustAcc_Dic)
+                {
+                    MBGManeuverNode tempManeuverNode = pair.Value;
+                    MBGMath_CaculationMethod.GetClosetPoint(this.CoordinateConverter.ConvertSolarToMapView(tempManeuverNode.ManeuverPoint.State.Position), StartPoint, Direction, out double Distance);
+                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.3) && Distance < distance)
+                    {
+                        distance = Distance;
+                        maneuverNode = tempManeuverNode;
+                    }
+                }
+                if (!double.IsPositiveInfinity(distance))
+                {
+                    if (UnityEngine.Input.GetMouseButtonDown(0))
+                    {
+                        maneuverNode.nodeScript.OnPointerClick();
+                    }
+                    return;
+                }
+
+                distance = double.PositiveInfinity;
                 Vector3d Targetpoint = new Vector3d();
                 MBGOrbitPoint orbitPoint = new MBGOrbitPoint();
                 for (int i = 0; i < pointList.Count - 1; i++)
@@ -226,6 +247,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     //MBGManeuverNode maneuverNode = this.MBGOrbit.CloseToExistNode(orbitPoint, 300);
                     //if (maneuverNode == null)
                     //{
+                    if (distance < (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.5 && (this.MBGOrbit.CloseToExistNode(orbitPoint, 300) == null))
+                    {
                         this._addNodeIcon.enabled = true;
                         this.AllowAddNode = true;
                         double size = (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.02;
@@ -237,6 +260,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                             this.AllowAddNode = false;
                             this.PointerDown(orbitPoint);
                         }
+                    }
                     //}
                     //else
                     //{
@@ -307,7 +331,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void AddManeuverNode(MBGOrbitPoint orbitPoint)
         {
-            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this._infocanvas,this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
+            MBGManeuverNodeScript nodeScript = MBGManeuverNodeScript.Create(this._infocanvas, this.transform.parent, this, orbitPoint, node => this.ConfirmManeuverNode(node));
         }
 
         public void TestAddManeuverNode(double Time, Vector3d DeltaV)
@@ -838,6 +862,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         //最核心的变量，即利用VectorLine绘制出的轨道线_vectrocityLine
         //核心代码目的即为正确绘制此VectorLine
 
+        //private List<MBGManeuverNodeScript> nodeScriptList;
 
         private INavigationTargetProvider _navigationTargetProvider;
         //大概和

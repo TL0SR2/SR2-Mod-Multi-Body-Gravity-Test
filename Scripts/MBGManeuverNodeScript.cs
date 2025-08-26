@@ -45,20 +45,21 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private void Initialize(MBGOrbitLine orbitLine, MBGOrbitPoint point,Canvas canvas)
         {
+
             this._orbitLine = orbitLine;
             this._camera = orbitLine.Camera;
             this._point = point;
             //this._infoCanvas = canvas;
-            MapItem.ItemClicked += this.OnPointerClick;
+            //MapItem.ItemClicked += this.OnPointerClick;
             this.UpdateManeuverVectors();
             this.InitializeUi();
             MBGPatch_MapCraft.OnAfterCameraPositionedEvent += sender => this.OnAfterCameraPositioned();
             InitComplete = true;
         }
 
-        public void OnPointerClick(object sender, MapItem.ItemClickedEventArgs eventArgs)
+        public void OnPointerClick()
         {
-            Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log");
+            Debug.Log("TL0SR2 MBG Maneuver Node Script -- On Pointer Click -- Log 1");
         }
 
 
@@ -126,9 +127,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._selectNodeIcon.transform.localScale = Vector3.one;
             this._selectNodeIcon.sprite = UiUtils.LoadIconSprite("Sphere");
             this._selectNodeIcon.color = new Color(0, 1, 1, 1f);
-            //this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
-            this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
-            this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
+            this._selectNodeIcon.rectTransform.sizeDelta = new Vector2(20f, 20f);
+            //this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 20f);
+            //this._selectNodeIcon.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 20f);
             this._selectNodeIcon.enabled = true;
             GameObject gameObject3 = new GameObject("BurnLocked");
             gameObject3.transform.SetParent(this._infoCanvas.transform);
@@ -307,12 +308,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 this._deleteNodeIcon.enabled = false;
                 return;
             }
-                //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
+            //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
+            double size = (this._orbitLine.Camera.transform.position - this._nodeScreenPosition).magnitude * 0.02 / 20;
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
             this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(_selectNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
+            this._selectNodeIcon.rectTransform.sizeDelta = (Vector2)(20 * size * new Vector2d(1, 1));
             this._lockedNodeIcon.transform.position = this._selectNodeIcon.transform.position;
             this._lockedNodeIcon.transform.rotation = Quaternion.LookRotation(_lockedNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
+            this._lockedNodeIcon.rectTransform.sizeDelta = (Vector2)(25 * size * new Vector2d(1, 1));
             double d = Mathd.Tan(0.01745329 * (double)(4 * (Game.Instance.Device.IsMobileBuild ? 3 : 2))) * this._cameraDistance * (double)Game.UiScale;
             Vector3d a = (this._camera.transform.up + this._camera.transform.right).normalized;
             Vector3d vector3d = this._nodeWorldPosition + a * d;
@@ -320,6 +324,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 this._deleteNodeIcon.transform.position = Utilities.GameWorldToScreenPoint(this._infoCanvas.worldCamera, (Vector3)vector3d);
                 this._deleteNodeIcon.transform.rotation = Quaternion.LookRotation(this._deleteNodeIcon.transform.position, this._infoCanvas.worldCamera.transform.position);
+                this._deleteNodeIcon.rectTransform.sizeDelta = (Vector2)(15 * size * new Vector2d(1, 1));
             }
             this._selectNodeIcon.enabled = true;
 			this._lockedNodeIcon.enabled = this.Locked;
