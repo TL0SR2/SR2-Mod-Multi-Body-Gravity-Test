@@ -210,8 +210,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 foreach (var pair in this.MBGOrbit.Time_ThrustAcc_Dic)
                 {
                     MBGManeuverNode tempManeuverNode = pair.Value;
-                    MBGMath_CaculationMethod.GetClosetPoint(this.CoordinateConverter.ConvertSolarToMapView(tempManeuverNode.ManeuverPoint.State.Position), StartPoint, Direction, out double Distance);
-                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.3) && Distance < distance)
+                    Vector3d position = this.CoordinateConverter.ConvertSolarToMapView(this.GetPointSolarPosition(tempManeuverNode.ManeuverPoint));
+                    MBGMath_CaculationMethod.GetClosetPoint(position, StartPoint, Direction, out double Distance);
+                    if (Distance <= ((this.Camera.transform.position - position).magnitude * 0.2) && Distance < distance)
                     {
                         distance = Distance;
                         maneuverNode = tempManeuverNode;
@@ -233,7 +234,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= ((this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.5) && Distance < distance)
+                    if (Distance <= ((this.Camera.transform.position - point).magnitude * 0.1) && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;
