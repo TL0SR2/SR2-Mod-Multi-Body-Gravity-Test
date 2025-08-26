@@ -247,7 +247,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     //MBGManeuverNode maneuverNode = this.MBGOrbit.CloseToExistNode(orbitPoint, 300);
                     //if (maneuverNode == null)
                     //{
-                    if (distance < (this.Camera.transform.position - this._addNodeIcon.transform.position).magnitude * 0.5 && (this.MBGOrbit.CloseToExistNode(orbitPoint, 300) == null))
+                    if (true)//this.MBGOrbit.CloseToExistNode(orbitPoint, 300) == null)
                     {
                         this._addNodeIcon.enabled = true;
                         this.AllowAddNode = true;

@@ -309,7 +309,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return;
             }
             //Debug.Log("TL0SR2 MBG Maneuver Node Script -- Update UI -- Log C");
-            double size = (this._orbitLine.Camera.transform.position - this._nodeScreenPosition).magnitude * 0.02 / 20;
+            double size = (this._orbitLine.Camera.transform.position - this._nodeScreenPosition).magnitude * 0.05 / 20;
             this._maneuverNodeAdjustorContainer.gameObject.SetActive(true);
             this._selectNodeIcon.transform.position = this._nodeScreenPosition;
             this._selectNodeIcon.transform.rotation = Quaternion.LookRotation(_selectNodeIcon.transform.position - this._infoCanvas.worldCamera.transform.position);
