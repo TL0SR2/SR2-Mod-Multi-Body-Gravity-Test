@@ -207,6 +207,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Vector3d Direction = mouseRay.direction;
                 double distance = double.PositiveInfinity;
                 MBGManeuverNode maneuverNode = null;
+                    Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Count {MBGOrbit.Time_ThrustAcc_Dic.Count}");
                 foreach (var pair in this.MBGOrbit.Time_ThrustAcc_Dic)
                 {
                     MBGManeuverNode tempManeuverNode = pair.Value;

@@ -37,8 +37,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             maneuverNodeScript.name = "MBGBurnNode";
             maneuverNodeScript.transform.SetParent(parent);
             maneuverNodeScript.transform.localScale = new Vector3(1, 1, 1);
-            maneuverNodeScript.Initialize(orbitLine, point,canvas);
             maneuverNodeScript.maneuverNode = new MBGManeuverNode(orbitLine, point, new Vector3d(), maneuverNodeScript);
+            maneuverNodeScript.Initialize(orbitLine, point,canvas);
 
             return maneuverNodeScript;
         }
@@ -47,6 +47,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
 
             this._orbitLine = orbitLine;
+            this.ConfirmBurn?.Invoke(maneuverNode);
             this._camera = orbitLine.Camera;
             this._point = point;
             //this._infoCanvas = canvas;
