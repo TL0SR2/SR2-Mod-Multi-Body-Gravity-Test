@@ -262,6 +262,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
                         if (UnityEngine.Input.GetMouseButtonDown(0))
                         {
+                            MBGManeuverNodeScript.ClickNode(null);
                             this.AllowAddNode = false;
                             this.PointerDown(orbitPoint);
                         }

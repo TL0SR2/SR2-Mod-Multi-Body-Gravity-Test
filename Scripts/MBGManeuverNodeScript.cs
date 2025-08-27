@@ -367,15 +367,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             if (visible)
             {
-                if (this._gizmoState != GizmoState.Retracted)
+                if (this._gizmoState != GizmoState.Extended)
                 {
-                    this.SetGizmoState(GizmoState.Retracted);
+                    this.SetGizmoState(GizmoState.Extended);
                 }
                 this._movementAidGizmo?.OnSelected();
                 return;
             }
             this._movementAidGizmo?.OnDeselected();
-            this.SetGizmoState(GizmoState.Extended);
+            this.SetGizmoState(GizmoState.Retracted);
         }
         
         private MBGNodeDeltaVAdjustorScript _movementAidGizmo;
