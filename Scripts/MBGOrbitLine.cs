@@ -214,7 +214,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     Vector3d position = tempManeuverNode.ScreenPosition;
                     MBGMath_CaculationMethod.GetClosetPoint(position, StartPoint, Direction, out double Distance);
                     //Debug.Log($"TL0SR2 MBG Orbit Line -- Update -- pair Distance {Distance}");
-                    if (Distance <= ((this.Camera.transform.position - position).magnitude * 0.05) && Distance < distance)
+                    if (Distance <= ((this.Camera.transform.position - position).magnitude * 0.01) && Distance < distance)
                     {
                         distance = Distance;
                         maneuverNode = tempManeuverNode;
@@ -238,7 +238,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     Vector3d point = _vectrocityLine.points3[i];
                     MBGMath_CaculationMethod.GetClosetPoint(point, StartPoint, Direction, out double Distance);
-                    if (Distance <= ((this.Camera.transform.position - point).magnitude * 0.1) && Distance < distance)
+                    if (Distance <= ((this.Camera.transform.position - point).magnitude * 0.02) && Distance < distance)
                     {
                         distance = Distance;
                         Targetpoint = point;

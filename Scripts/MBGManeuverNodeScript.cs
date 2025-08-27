@@ -371,10 +371,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     this.SetGizmoState(GizmoState.Retracted);
                 }
-                this._movementAidGizmo.OnSelected();
+                this._movementAidGizmo?.OnSelected();
                 return;
             }
-            this._movementAidGizmo.OnDeselected();
+            this._movementAidGizmo?.OnDeselected();
             this.SetGizmoState(GizmoState.Extended);
         }
         
@@ -432,7 +432,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 		private Vector3d _prevDeltaV;
 		private float _nextAutoLockAvailability;
 		public double DeltaVMag { get; private set; }
-		private GizmoState _gizmoState;
+		private GizmoState _gizmoState = GizmoState.Retracted;
         public bool Locked = false;
 
         private MBGNodeDeltaVAdjustorScript[] _maneuverNodeAdjustors = new MBGNodeDeltaVAdjustorScript[6];
