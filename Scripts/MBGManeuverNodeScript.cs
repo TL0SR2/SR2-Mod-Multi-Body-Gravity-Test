@@ -472,9 +472,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public float _deltaVAdjustmentSensitivityExpo { get; private set; } = 1f;
 		private enum GizmoState
 		{
-			// Token: 0x04001910 RID: 6416
 			Extended,
-			// Token: 0x04001911 RID: 6417
 			Retracted
 		}
     }

@@ -164,7 +164,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lineScaleBaseSize = Mathd.Tan(d);
         }
 
-        protected virtual void LateUpdate()
+        private void LateUpdate()
         {
             if (this._dragVec != Vector2.zero && !Utilities.Input.AnyMouseButton())
             {
@@ -178,18 +178,22 @@ namespace Assets.Scripts.Flight.Sim.MBG
             if (this._selectionChanging || this._selected)
             {
                 float uiScale = Game.UiScale;
-                Vector3d nodeWorldPosition = this.ManeuverNodeScript._point.State.Position;
-                double d = this._lineScaleBaseSize * Vector3.Distance((Vector3)nodeWorldPosition,ManeuverNodeScript.Camera.transform.position) * (double)this._adjustorExtensionPercent * (double)uiScale;
+                Vector3d nodeWorldPosition = this.ManeuverNodeScript.WorldPosition;
+                double d = this._lineScaleBaseSize * Vector3.Distance((Vector3)nodeWorldPosition, ManeuverNodeScript.Camera.transform.position) * (double)this._adjustorExtensionPercent * (double)uiScale;
                 Vector3d vector3d = nodeWorldPosition + Vector3d.Scale(this.ManeuverVec.normalized, Vector3d.one * d);
-                Vector2 vector = Utilities.GameWorldToScreenPoint(this._canvas.worldCamera, (Vector3)vector3d);
+                //Vector2 vector = Utilities.GameWorldToScreenPoint(this._canvas.worldCamera, (Vector3)vector3d);
+                Vector2 vector = (Vector2)(Vector3)this.ManeuverNodeScript.CoordinateConverter.ConvertSolarToMapView(vector3d);
+                //Vector即是当前拖动球应该处于的屏幕位置
                 Vector2 vector2 = (Vector2)Utilities.GameWorldToScreenPoint(ManeuverNodeScript.Camera, (Vector3)nodeWorldPosition);
                 this._maneuverScreenVec = (vector - vector2).normalized;
+                //Vector2是对应推进矢量在屏幕上的投影矢量
                 Vector3 vector3 = vector;
                 if (this._dragging || this._dragState == MBGNodeDeltaVAdjustorScript.DragState.End)
                 {
                     if (this.ExtensionEnabled && !this._selectionChanging)
                     {
                         float num = Vector3.Distance(Utilities.GameWorldToScreenPoint(ManeuverNodeScript.Camera, (Vector3)nodeWorldPosition), vector);
+                        //num是该拖动球到点火节点的屏幕距离
                         float num2 = Vector2.Dot(this._currentMousePos - vector, this._maneuverScreenVec);
                         if (num != 0f && num2 != 0f)
                         {
@@ -226,12 +230,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     }
                 }
                 this._icon.transform.position = vector3;
+                this._icon.transform.rotation = Quaternion.LookRotation(this.ManeuverNodeScript.Camera.transform.position - this._icon.transform.position);
                 float num6 = Mathf.Min(this.GetIconTransparency(vector3d), 0.8f);
                 this._iconColor.a = num6;
                 this._icon.color = this._iconColor;
                 if (this.DisableDraggingWhenFacingCamera)
                 {
-                    this._icon.raycastTarget = ((double)num6 > 0.4);
+                    this._icon.raycastTarget = (double)num6 > 0.4;
                 }
                 else
                 {
