@@ -166,7 +166,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lineScaleBaseSize = Mathd.Tan(d);
         }
 
-        private void LateUpdate()
+        public void LateUpdate()
         {
             Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Data  _selectionChanging {_selectionChanging}  _selected {_selected}");
             if (this._dragVec != Vector2.zero && !Utilities.Input.AnyMouseButton())
@@ -308,7 +308,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private void Initialize(Canvas canvas, Func<Vector3d> maneuverVec, MBGManeuverNodeScript node, string iconName, Color lineColor)
         {
-            this.gameObject.SetActive(true);
+            //this.gameObject.SetActive(true);
             this._canvas = canvas;
             //this._orbitInfoProvider = orbitInfoProvider;
             //this._mapOptions = ioc.Resolve<IMapOptions>(false);
