@@ -1,4 +1,5 @@
 using System;
+using Assets.Scripts.Flight.MapView.Interfaces;
 using Assets.Scripts.Flight.MapView.Items;
 using Assets.Scripts.Flight.MapView.UI;
 using ModApi;
@@ -426,6 +427,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 return this._orbitLine.GetPointSolarPosition(maneuverNode.ManeuverPoint);
             }
         }
+
+        public new IMapViewCoordinateConverter CoordinateConverter => this._orbitLine.CoordinateConverter;
 		private bool _dvChanged;
 
 		private bool _dvChangeEnd;
