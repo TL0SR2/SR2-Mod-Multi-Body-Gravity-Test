@@ -42,7 +42,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
 
             var velocity_eulerimp = referenceFrame.PlanetToFrameVelocity(pVPair_Rk.Velocity - craftNode.Parent.GetSolarVelocityAtTime(time + fixedDeltaTime));
-            var position_eulerimp = referenceFrame.PlanetToFramePosition(pVPair_Rk.Position - craftNode.Parent.GetSolarPositionAtTime(time + fixedDeltaTime))-fixedDeltaTime*referenceFrame.Velocity;
+            var position_eulerimp = referenceFrame.PlanetToFramePosition(pVPair_Rk.Position - craftNode.Parent.GetSolarPositionAtTime(time + fixedDeltaTime)) - fixedDeltaTime * referenceFrame.Velocity;
             var velocity_eulerimp_rev = velocity_eulerimp - fixedDeltaTime * craftNode.CraftScript.FlightData.GravityFrame;
             var position_eulerimp_rev = position_eulerimp - fixedDeltaTime * velocity_eulerimp;
 
@@ -51,28 +51,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             // Debug.Log($"referenceFrameVelocity: {{ {referenceFrame.Velocity.x:E3}, {referenceFrame.Velocity.y:E3}, {referenceFrame.Velocity.z:E3} }}");
 
-            // Debug.Log($"deltaPosition: {{ {deltaPosition.x:E3}, {deltaPosition.y:E3}, {deltaPosition.z:E3} }}");
-            // Debug.Log($"deltaVelocity: {{ {deltaVelocity.x:E3}, {deltaVelocity.y:E3}, {deltaVelocity.z:E3} }}");
-
-            // Debug.Log($"LastdeltaPosition: {{ {(LastPosition - position).x:E3}, {(LastPosition - position).y:E3}, {(LastPosition - position).z:E3} }}");
-            // Debug.Log($"LastdeltaVelocity: {{ {(LastVelocity - velocity).x:E3}, {(LastVelocity - velocity).y:E3}, {(LastVelocity - velocity).z:E3} }}");
-
-            // deltaPosition = referenceFrame.PlanetToFrameVector(LastPosition - position);
-            // deltaVelocity = referenceFrame.PlanetToFrameVector(LastVelocity - velocity);
-
-
-            // var deltaPosition = referenceFrame.PlanetToFrameVector(pVPair_Rk.Position - position_eulerimp);
-            // var deltaVelocity = referenceFrame.PlanetToFrameVector(pVPair_Rk.Velocity - velocity_eulerimp);
-
-            // var deltaPosition = referenceFrame.PlanetToFrameVector(craftNode.Parent.GetSolarPositionAtTime(time) + new Vector3d(1000E3, 0, 0) - position);
-            // var deltaVelocity = referenceFrame.PlanetToFrameVector(craftNode.Parent.GetSolarVelocityAtTime(time) + new Vector3d(100, 0, 0) - velocity);
-
-            // var deltaPosition = craftNode.Parent.GetSolarPositionAtTime(time) + new Vector3d(10000E3, 0, 0) - position;
-            // var deltaVelocity = craftNode.Parent.GetSolarVelocityAtTime(time) + new Vector3d(100, 0, 0) - velocity;
-
-
-
-
+            Debug.Log($"deltaPosition: {{ {deltaPosition.x:E3}, {deltaPosition.y:E3}, {deltaPosition.z:E3} }}");
+            Debug.Log($"deltaVelocity: {{ {deltaVelocity.x:E3}, {deltaVelocity.y:E3}, {deltaVelocity.z:E3} }}");
 
             // Debug.Log("craft FramePosition: " + craftNode.CraftScript.FramePosition);
             // Debug.Log("craft planetposition: " + craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition));
@@ -88,7 +68,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 body.BodyScript.RigidBody.velocity += deltaVelocity;
                 body.BodyScript.RigidBody.position += deltaPosition.ToVector3();
             }
-            // Debug.Log("MBGFlightPostFixedUpdate coroutine called with fixedTime: " + Time.fixedTime + " time: " + (frame.FlightScene.FlightState.Time - (Time.fixedTime - StartTime.Item2) - StartTime.Item1) + " craft: " + frame.FlightScene.CraftNode.Name);
+
         }
 
 

@@ -62,15 +62,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             var gravityFrame = MBGOrbit.CalculateGravityAtTime(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(time), time);
 
-            // gravityFrame = new Vector3d(0, 0, 0);
-            // Debug.Log("craft FramePosition: " + craftNode.CraftScript.FramePosition);
-            // Debug.Log("craft planetposition: " + craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition));
-            // Debug.Log("craft SolarPosition1: " + craftNode.SolarPosition);
-            // Debug.Log("craft SolarPosition2: " + (craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(Time.fixedTime + MBGFlightPostFixedUpdate.StartTime)));
-            // Debug.Log("craft d SolarPosition: " + ((craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(Time.fixedTime + MBGFlightPostFixedUpdate.StartTime)) - craftNode.SolarPosition));
-            _gravityFrameRef(__instance) = gravityFrame.ToVector3();
-            // GravityFrameNormalizedRef(__instance) = MBGMath.ToVector3(gravityFrame).normalized;
+            Debug.Log($"gravityFrame: {{ {gravityFrame.x:E3}, {gravityFrame.y:E3}, {gravityFrame.z:E3} }}");
 
+            _gravityFrameRef(__instance) = gravityFrame.ToVector3();
+           
             GravityMagnitudeRef(__instance) = (float)gravityFrame.magnitude;
 
             GravityFrameNormalizedRef(__instance) = (referenceFrame.PlanetToFrameVector(craftNode.Parent.CalculateGravityVector(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition), 1.0))).normalized;
