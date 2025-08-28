@@ -173,6 +173,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < this._maneuverNodeAdjustors.Length; i++)
                 {
                     this._maneuverNodeAdjustors[i].OnDeselected();
+                    this._maneuverNodeAdjustors[i].enabled = false;
                 }
             }
             else if (state == GizmoState.Extended)
@@ -181,6 +182,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     for (int j = 0; j < this._maneuverNodeAdjustors.Length; j++)
                     {
+                        this._maneuverNodeAdjustors[j].enabled = true;
                         this._maneuverNodeAdjustors[j].OnSelected();
                     }
                 }
