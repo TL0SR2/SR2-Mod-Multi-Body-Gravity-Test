@@ -308,9 +308,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private void Initialize(Canvas canvas, Func<Vector3d> maneuverVec, MBGManeuverNodeScript node, string iconName, Color lineColor)
         {
+            this.gameObject.SetActive(true);
             this._canvas = canvas;
-			//this._orbitInfoProvider = orbitInfoProvider;
-			//this._mapOptions = ioc.Resolve<IMapOptions>(false);
+            //this._orbitInfoProvider = orbitInfoProvider;
+            //this._mapOptions = ioc.Resolve<IMapOptions>(false);
             this._maneuverVecFunc = maneuverVec;
             this.ManeuverNodeScript = node;
             //this._drawModeProvider = drawModeProvider;
