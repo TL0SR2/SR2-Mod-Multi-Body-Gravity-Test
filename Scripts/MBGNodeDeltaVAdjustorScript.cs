@@ -145,12 +145,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         internal void OnDeselected()
         {
+            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- On Deselecte");
             this._selected = false;
             this._selectionChanging = true;
             this._selectionChangedTime = Time.unscaledTime;
         }
         internal void OnSelected()
         {
+            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- On Selected");
             this._selected = true;
             this._selectionChanging = true;
             this._selectionChangedTime = Time.unscaledTime;
@@ -166,6 +168,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private void LateUpdate()
         {
+            Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Data  _selectionChanging {_selectionChanging}  _selected {_selected}");
             if (this._dragVec != Vector2.zero && !Utilities.Input.AnyMouseButton())
             {
                 Debug.LogWarning("dragVec is nonzero yet no mouse buttons are down...OnDragEnd wasn't called when mouse was released.");
