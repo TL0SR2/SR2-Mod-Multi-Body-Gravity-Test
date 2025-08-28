@@ -454,7 +454,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public IPlanetNode AssociatedPlanet => ((ICameraFocusable)_orbitLine).AssociatedPlanet;
 
-        public new Camera Camera => Game.Instance.FlightScene.FlightSceneUI.Canvas.worldCamera;
+        public new Camera Camera => Game.Instance.FlightScene.IocContainer.Resolve<Camera>() ?? _orbitLine.Camera;
 
         public bool FocusByClick => ((ICameraFocusable)_orbitLine).FocusByClick;
 
