@@ -5,22 +5,6 @@ using ModApi.Craft;
 using System.Reflection;
 using System;
 using Assets.Scripts.Craft.FlightData;
-using ModApi.Common;
-
-using ModApi.GameLoop.Interfaces;
-using ModApi.GameLoop;
-using Assets.Scripts.GameLoop;
-using ModApi.Flight;
-using ModApi;
-
-
-
-
-
-
-
-
-
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -71,7 +55,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 mbgOrbit.ForceReCalculation();
             }
 
-            Debug.Log("mbg calc: " + craftNode.Orbit.Time + " craft: " + craftNode.Name);
+            // Debug.Log("mbg calc: " + craftNode.Orbit.Time + " craft: " + craftNode.Name);
 
 
             var time = Time.fixedTime - FlightState_set_Time_Patch.LastUpdateFixedTime + FlightState_set_Time_Patch.LastUpdateTime;
@@ -84,21 +68,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
             // Debug.Log("craft SolarPosition1: " + craftNode.SolarPosition);
             // Debug.Log("craft SolarPosition2: " + (craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(Time.fixedTime + MBGFlightPostFixedUpdate.StartTime)));
             // Debug.Log("craft d SolarPosition: " + ((craftNode.CraftScript.ReferenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(Time.fixedTime + MBGFlightPostFixedUpdate.StartTime)) - craftNode.SolarPosition));
-            _gravityFrameRef(__instance) = ToVector3(gravityFrame);
+            _gravityFrameRef(__instance) = gravityFrame.ToVector3();
             // GravityFrameNormalizedRef(__instance) = MBGMath.ToVector3(gravityFrame).normalized;
 
             GravityMagnitudeRef(__instance) = (float)gravityFrame.magnitude;
 
-            GravityFrameNormalizedRef(__instance) = ToVector3(referenceFrame.PlanetToFrameVector(craftNode.Parent.CalculateGravityVector(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition), 1.0))).normalized;
+            GravityFrameNormalizedRef(__instance) = (referenceFrame.PlanetToFrameVector(craftNode.Parent.CalculateGravityVector(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition), 1.0))).normalized;
 
             return false;
 
         }
-        public static UnityEngine.Vector3 ToVector3(Vector3d v)
-        {
-            return new UnityEngine.Vector3((float)v.x, (float)v.y, (float)v.z);
-        }
-
         public static Vector3d ToVector3d(UnityEngine.Vector3 v)
         {
             return new Vector3d((double)v.x, (double)v.y, (double)v.z);

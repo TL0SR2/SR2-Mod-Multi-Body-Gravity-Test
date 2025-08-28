@@ -1,15 +1,7 @@
 using UnityEngine;
-using HarmonyLib;
 using System;
 using ModApi.GameLoop.Interfaces;
 using ModApi.GameLoop;
-using Assets.Scripts.GameLoop;
-using ModApi.Flight;
-using ModApi;
-
-
-
-
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -18,9 +10,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public bool StartMethodCalled { get; set; }
 
-        public Vector3d LastPosition = Vector3d.zero;
-
-        public Vector3d LastVelocity = Vector3d.zero;
 
         public void FlightPostFixedUpdate(in FlightFrameData frame)
         {
@@ -31,17 +20,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             var position = referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(time);
             var velocity = referenceFrame.FrameToPlanetVelocity(craftNode.CraftScript.FrameVelocity) + craftNode.Parent.GetSolarVelocityAtTime(time);
 
-            if (LastPosition == Vector3d.zero)
-            {
-                LastPosition = position;
-                LastVelocity = velocity;
-                Debug.Log($"Initial LastPosition: {{ {LastPosition.x:E3}, {LastPosition.y:E3}, {LastPosition.z:E3} }}");
-            }
-
-            Debug.Log($"FrameVelocity: {{ {craftNode.CraftScript.FrameVelocity.x:E3}, {craftNode.CraftScript.FrameVelocity.y:E3}, {craftNode.CraftScript.FrameVelocity.z:E3} }}");
-            Debug.Log($"FramePosition: {{ {craftNode.CraftScript.FramePosition.x:E3}, {craftNode.CraftScript.FramePosition.y:E3}, {craftNode.CraftScript.FramePosition.z:E3} }}");
-
-            int CaculateStepCount = 20;
+            int CaculateStepCount = 5;
             P_V_Pair pVPair_Rk = new P_V_Pair(position, velocity);
             double deltaTime = fixedDeltaTime / CaculateStepCount;
             double stepTime = time;
@@ -81,8 +60,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
             // deltaPosition = referenceFrame.PlanetToFrameVector(LastPosition - position);
             // deltaVelocity = referenceFrame.PlanetToFrameVector(LastVelocity - velocity);
 
-            LastPosition = pVPair_Rk.Position;
-            LastVelocity = pVPair_Rk.Velocity;
 
             // var deltaPosition = referenceFrame.PlanetToFrameVector(pVPair_Rk.Position - position_eulerimp);
             // var deltaVelocity = referenceFrame.PlanetToFrameVector(pVPair_Rk.Velocity - velocity_eulerimp);
@@ -108,8 +85,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 // body.BodyScript.RigidBody.velocity = ToVector3(body.BodyScript.RigidBody.velocity);
                 // Debug.Log("bodyvelocity" + body.BodyScript.RigidBody.velocity.ToString() + " position: " + body.BodyScript.RigidBody.position.ToString());
-                body.BodyScript.RigidBody.velocity += ToVector3(deltaVelocity);
-                body.BodyScript.RigidBody.position += ToVector3(deltaPosition);
+                body.BodyScript.RigidBody.velocity += deltaVelocity;
+                body.BodyScript.RigidBody.position += deltaPosition.ToVector3();
             }
             // Debug.Log("MBGFlightPostFixedUpdate coroutine called with fixedTime: " + Time.fixedTime + " time: " + (frame.FlightScene.FlightState.Time - (Time.fixedTime - StartTime.Item2) - StartTime.Item1) + " craft: " + frame.FlightScene.CraftNode.Name);
         }
@@ -119,11 +96,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public int GetInstanceID()
         {
             return GetHashCode();
-        }
-
-        public static UnityEngine.Vector3 ToVector3(Vector3d v)
-        {
-            return new UnityEngine.Vector3((float)v.x, (float)v.y, (float)v.z);
         }
 
         public static Vector3d ToVector3d(UnityEngine.Vector3 v)
