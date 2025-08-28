@@ -166,6 +166,16 @@ namespace Assets.Scripts.Flight.Sim.MBG
             this._lineScaleBaseSize = Mathd.Tan(d);
         }
 
+        public void FixedUpdate() 
+        {
+            Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- FixedUpdate");
+        }
+
+        public void Update()
+        {
+            Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- Update");
+        }
+
         public void LateUpdate()
         {
             Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Data  _selectionChanging {_selectionChanging}  _selected {_selected}");
