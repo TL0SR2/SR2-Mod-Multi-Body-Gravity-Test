@@ -173,7 +173,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 for (int i = 0; i < this._maneuverNodeAdjustors.Length; i++)
                 {
                     this._maneuverNodeAdjustors[i].OnDeselected();
-                    this._maneuverNodeAdjustors[i].enabled = false;
+                    //this._maneuverNodeAdjustors[i].enabled = false;
                 }
             }
             else if (state == GizmoState.Extended)
@@ -183,7 +183,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     for (int j = 0; j < this._maneuverNodeAdjustors.Length; j++)
                     {
                         this._maneuverNodeAdjustors[j].enabled = true;
-                        this._maneuverNodeAdjustors[j].OnSelected();
+                        //this._maneuverNodeAdjustors[j].OnSelected();
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangingEvent += this.OnAdjustorChanging;
 				nodeDeltaVAdjustorScript.ManeuverNodeAdjustmentChangeEndEvent += this.OnAdjustorChangeEnd;
 			}
-            nodeDeltaVAdjustorScript.enabled = false;
+            nodeDeltaVAdjustorScript.enabled = true;
 			return nodeDeltaVAdjustorScript;
 		}
 		private void OnAdjustorChangeBegin(MBGNodeDeltaVAdjustorScript source)
