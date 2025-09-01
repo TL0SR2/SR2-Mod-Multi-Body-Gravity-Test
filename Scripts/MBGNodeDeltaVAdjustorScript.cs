@@ -173,133 +173,88 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogWarning("dragVec is nonzero yet no mouse buttons are down...OnDragEnd wasn't called when mouse was released.");
                 this.OnEndDrag(null);
             }
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 1");
             if (this._selectionChanging)
             {
                 this.DoSelectionChangingAnimations(false);
             }
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 2");
             if (this._selectionChanging || this._selected)
             {
                 float uiScale = Game.UiScale;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 3");
                 Vector3d nodeWorldPosition = this.ManeuverNodeScript.WorldPosition;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 4");
                 double d = this._lineScaleBaseSize * Vector3.Distance((Vector3)nodeWorldPosition, ManeuverNodeScript.Camera.transform.position) * (double)this._adjustorExtensionPercent * (double)uiScale;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 5");
-                Vector3d vector3d = nodeWorldPosition + Vector3d.Scale(this.ManeuverVec.normalized, Vector3d.one * d);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 6");
+                Vector3d vector3d = nodeWorldPosition;// + Vector3d.Scale(this.ManeuverVec.normalized, Vector3d.one * d);
                 //Vector2 vector = Utilities.GameWorldToScreenPoint(this._canvas.worldCamera, (Vector3)vector3d);
                 Vector2 vector = (Vector2)(Vector3)this.ManeuverNodeScript.CoordinateConverter.ConvertSolarToMapView(vector3d);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 7");
                 //Vector即是当前拖动球应该处于的屏幕位置
                 Vector2 vector2 = (Vector2)Utilities.GameWorldToScreenPoint(ManeuverNodeScript.Camera, (Vector3)nodeWorldPosition);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 8");
                 this._maneuverScreenVec = (vector - vector2).normalized;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 9");
                 //Vector2是对应推进矢量在屏幕上的投影矢量
                 Vector3 vector3 = vector;
+                /*
                 if (this._dragging || this._dragState == MBGNodeDeltaVAdjustorScript.DragState.End)
                 {
                     if (this.ExtensionEnabled && !this._selectionChanging)
                     {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 10");
                         float num = Vector3.Distance(Utilities.GameWorldToScreenPoint(ManeuverNodeScript.Camera, (Vector3)nodeWorldPosition), vector);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 11");
                         //num是该拖动球到点火节点的屏幕距离
                         float num2 = Vector2.Dot(this._currentMousePos - vector, this._maneuverScreenVec);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 12");
                         if (num != 0f && num2 != 0f)
                         {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 13");
                             float num3 = num * (float)((num2 >= 0f) ? 3 : -1);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 14");
                             float num4 = num * ((num2 >= 0f) ? 0f : 0.1f);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 15");
                             float num5 = Mathf.Sign(num2) * (Mathf.Max(0f, Math.Abs(num2) - num4) / Math.Max(0f, Math.Abs(num3) - num4));
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 16");
                             num5 = Mathf.Clamp(num5, -1f, 1f);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 17");
                             vector3 += this._maneuverScreenVec * ((num2 >= 0f) ? Mathf.Min(num2, num3) : Mathf.Max(num2, num3));
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 18");
                             float gizmoPercent = num5 * ((num5 >= 0f) ? 1f : 0.25f);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 19");
                             this.OnGizmoDragged(gizmoPercent);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 20");
                         }
                     }
                     MBGNodeDeltaVAdjustorScript.DragState dragState = this._dragState;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 21");
                     if (dragState != MBGNodeDeltaVAdjustorScript.DragState.Drag)
                     {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 22");
                         if (dragState != MBGNodeDeltaVAdjustorScript.DragState.End)
                         {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 23");
                             throw new InvalidOperationException("Unsupported drag state");
                         }
                         MBGNodeDeltaVAdjustorScript.AdjustorChangeDelegate maneuverNodeAdjustmentChangeEndEvent = this.ManeuverNodeAdjustmentChangeEndEvent;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 24");
                         if (maneuverNodeAdjustmentChangeEndEvent != null)
                         {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 25");
                             maneuverNodeAdjustmentChangeEndEvent(this);
                         }
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 26");
                         this._dragState = MBGNodeDeltaVAdjustorScript.DragState.Drag;
                     }
                     else
                     {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 27");
                         MBGNodeDeltaVAdjustorScript.AdjustorChangeDelegate maneuverNodeAdjustmentChangingEvent = this.ManeuverNodeAdjustmentChangingEvent;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 28");
                         if (maneuverNodeAdjustmentChangingEvent != null)
                         {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 29");
                             maneuverNodeAdjustmentChangingEvent(this);
                         }
                     }
                 }
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 30");
+                */
                 this._icon.transform.position = vector3;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 31");
                 this._icon.transform.rotation = Quaternion.LookRotation(this.ManeuverNodeScript.Camera.transform.position - this._icon.transform.position);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 32");
                 float num6 = Mathf.Min(this.GetIconTransparency(vector3d), 0.8f);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 33");
                 this._iconColor.a = num6;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 34");
                 this._icon.color = this._iconColor;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 35");
                 if (this.DisableDraggingWhenFacingCamera)
                 {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 36");
                     this._icon.raycastTarget = (double)num6 > 0.4;
                 }
                 else
                 {
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 37");
                     this._icon.raycastTarget = true;
                 }
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 38");
                 Vector3 vector4 = this._connectingLine.rectTransform.InverseTransformPoint(vector2);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 39");
                 Vector3 vector5 = this._icon.transform.localPosition;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 40");
                 Vector3 vector6 = vector5 - vector4;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 41");
                 vector5 = vector4 + vector6.normalized * (vector6.magnitude - this._iconSize * 0.5f * uiScale);
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 42");
                 this._connectingLine.points2[0] = vector4;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 43");
                 this._connectingLine.points2[1] = vector5;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 44");
                 this._connectingLineColor.a = num6;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 45");
                 this._connectingLine.color = this._connectingLineColor;
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 46");
                 this._connectingLine.Draw();
-            Debug.Log("TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Log 47");
             }
         }
 
