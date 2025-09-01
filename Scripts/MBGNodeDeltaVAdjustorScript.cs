@@ -167,7 +167,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         public void LateUpdate()
         {
-            Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Data  _selectionChanging {_selectionChanging}  _selected {_selected}");
+            //Debug.Log($"TL0SR2 MBG Node DeltaV Adjustor Script -- LateUpdate -- Data  _selectionChanging {_selectionChanging}  _selected {_selected}");
             if (this._dragVec != Vector2.zero && !Utilities.Input.AnyMouseButton())
             {
                 Debug.LogWarning("dragVec is nonzero yet no mouse buttons are down...OnDragEnd wasn't called when mouse was released.");
@@ -233,6 +233,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     }
                 }
                 */
+                Debug.Log($"TL0SR2 -- MBG Node DeltaV Adjustor Script -- icon enable: {this.enabled}  ");
                 this._icon.transform.position = vector3;
                 this._icon.transform.rotation = Quaternion.LookRotation(this.ManeuverNodeScript.Camera.transform.position - this._icon.transform.position);
                 float num6 = Mathf.Min(this.GetIconTransparency(vector3d), 0.8f);
