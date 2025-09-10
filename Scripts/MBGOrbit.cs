@@ -5,6 +5,7 @@ using ModApi.Flight.Sim;
 using ModApi.Planet;
 using System.Linq;
 using ModApi.Flight;
+using System.Threading;
 
 namespace Assets.Scripts.Flight.Sim.MBG
 {
@@ -38,6 +39,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogError($"MBGOrbit.MBGOrbit -- Find Exception during Init");
                 Debug.LogException(ex);
             }
+
+            caculation = new MBGOrbitAsyncCaculation(this);
         }
 
         public void FindPlanetInformation()
@@ -55,8 +58,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                if ((this.CurrentCraft!=null)&&(!this.CraftDestroyed))
+                if ((this.CurrentCraft != null) && (!this.CraftDestroyed))
                 {
+                    /*
                     double time1 = startTime;
                     if (CalculateAfterWarp)
                     {
@@ -81,13 +85,20 @@ namespace Assets.Scripts.Flight.Sim.MBG
                     //Debug.Log($"TL0SR2 MBG Orbit Log -- MBG_Numerical_Calculation -- Calculation complete. Data:  n {n}  Total Count {MBG_PointList.Count}");
                     CaculationNum++;
                     // //接下来应该在此处执行激活重绘轨道线的操作
+                    */
+
+                    int n = GetPVNFromTime(startTime, out double NTime);
+                    MBGMath.NumericalIntegration(MBG_PointList[n], Time_ThrustAcc_Dic, elapsedTime, out List<MBGOrbitPoint> PointList);
+                    UpdateList<MBGOrbitPoint>(ref MBG_PointList, PointList, n);
+
+                    EndTime = NTime + elapsedTime;
                 }
             }
             catch (Exception e)
             {
                 Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBG_Numerical_Calculation -- Catch Exception");
                 Debug.LogException(e);
-                Debug.LogError($"TL0SR2 MBG Orbit Log Error -- MBG_Numerical_Calculation -- Detail Data  n {GetPVNFromTime(startTime, out _, out _)}  PVCount  {MBG_PointList.Count}");
+                Debug.LogError($"TL0SR2 MBG Orbit Log Error -- MBG_Numerical_Calculation -- Detail Data  n {GetPVNFromTime(startTime, out _)}  PVCount  {MBG_PointList.Count}");
             }
         }
 
@@ -100,6 +111,15 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Num {n} Value PostionLength {MBG_PointList[n].State.Position.magnitude}  VelocityLength {MBG_PointList[n].State.Velocity.magnitude} ");
             }
             Debug.Log($"TL0SR2 MBG Orbit Log -- DebugLogPVList Log -- Log End");
+        }
+
+        public void WaitUntilCaculationComplete(double time)
+        //等待time时间的计算完成
+        {
+            while (GetLastPoint().Time < time)
+            {
+                Thread.SpinWait(200);
+            }
         }
 
         public void ForceReCalculation()
@@ -115,7 +135,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             try
             {
                 //time -= _warpdelay;
-                int n = GetPVNFromTime(time, out double Multiplier, out double NTime);
+                int n = GetPVNFromTime(time, out double NTime);
                 //return MBGMath.LinearInterpolation(MBG_PVList[n], MBG_PVList[n + 1], durationTime / _listAccuracyTime - n);
                 var Output = MBGMath.HermiteInterpolation(MBG_PointList[n].State, MBG_PointList[n + 1].State, MBG_PointList[n].Time, MBG_PointList[n + 1].Time, time);
                 //Debug.Log($"TL0SR2 MBG Orbit Log -- GetPVPairFromTime -- Get Data n {n}  Multiplier {Multiplier}   PVCount {MBG_PointList.Count}  time {time}  NTime {NTime}   IntTime {NTime + MBGMath.GetStepTime(Multiplier)}  nPV PostionLength {MBG_PointList[n].State.Position.magnitude} VelocityLength {MBG_PointList[n].State.Velocity.magnitude} SelfTime {MBG_PointList[n].Time}  n+1PV PostionLength {MBG_PointList[n+1].State.Position.magnitude} VelocityLength {MBG_PointList[n+1].State.Velocity.magnitude} SelfTime {MBG_PointList[n+1].Time}  Output PostionLength {Output.Position.magnitude} VelocityLength {Output.Velocity.magnitude}");
@@ -127,6 +147,17 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 Debug.LogException(e);
                 return new P_V_Pair();
             }
+        }
+
+        public P_V_Pair TryGetStateFromTime(double time)
+        {
+            WaitUntilCaculationComplete(time);
+            return GetPVPairFromTime(time);
+        }
+
+        public MBGOrbitPoint GetLastPoint()
+        {
+            return MBG_PointList.Last();
         }
 
         public static MBGOrbit GetMBGOrbit(CraftNode craftNode)
@@ -253,6 +284,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             // 将原始列表的第n位改为新列表的第0位，原始列表的n+1位改为新列表的第1位，以此类推；如果原列表到达结尾，那么将新列表剩余的部分直接添加到原列表的末尾
             for (int i = 0; i < newList.Count; i++)
             {
+                /*
                 if (i + NewListStartAt >= originList.Count)
                 {
                     originList.Add(newList[i]);
@@ -261,17 +293,33 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 {
                     originList[i + NewListStartAt] = newList[i];
                 }
+                */
+                AddOrChangeElement<T>(ref originList, newList[i], i + NewListStartAt);
             }
+        }
+
+        public static void AddOrChangeElement<T>(ref List<T> originList, T element, int n)
+        //将列表第n项设置为element.如果列表第n项不存在，则add直到第n项存在
+        {
+            while (originList.Count - 1 < n) originList.Add(default);
+            originList[n] = element;
+        }
+
+        public static void DeleteElementAfterN<T>(ref List<T> originList, int n)
+        //保证列表最后一位是第n位。删除其后的所有元素
+        {
+            originList.RemoveRange(n + 1, originList.Count - n - 1);
         }
 
         public static void ReplenishList(ref List<MBGOrbitPoint> points, int n)
         //将列表补充到第N项不为空的状态
         {
-            
+            throw new NotImplementedException();
         }
 
         public void AddOrChangeManeuverNode(double startTime, MBGManeuverNode node)
         {
+            /*
             if (Time_ThrustAcc_Dic.ContainsKey(startTime))
             {
                 Time_ThrustAcc_Dic[startTime] = node;
@@ -280,10 +328,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 AddManeuverNode(startTime, node);
             }
+            */
+            throw new NotImplementedException("MBG Orbit ManeuverNode Code Unfinish.");
         }
 
         public void AddManeuverNode(double startTime, MBGManeuverNode node)
         {
+            /*
             if (!AlreadyHaveNodeInTime(Time_ThrustAcc_Dic, startTime, startTime + node.ThrustTime))
             {
                 Time_ThrustAcc_Dic.Add(startTime, node);
@@ -293,17 +344,27 @@ namespace Assets.Scripts.Flight.Sim.MBG
             {
                 Game.Instance.UserInterface.CreateMessageDialog("There's already Burn Node in this node burn time.");
             }
+            */
+            throw new NotImplementedException("MBG Orbit ManeuverNode Code Unfinish.");
         }
         public void RemoveManeuverNode(double startTime)
         {
+            /*
             Time_ThrustAcc_Dic.Remove(startTime);
             ForceReCalculation();
+            */
+            throw new NotImplementedException("MBG Orbit ManeuverNode Code Unfinish.");
+        }
+
+        public void AddOrChangePoint(MBGOrbitPoint orbitPoint, int n)
+        {
+            MBGOrbit.AddOrChangeElement<MBGOrbitPoint>(ref this.MBG_PointList, orbitPoint, n);
         }
 
 
         public Vector3d GetThrustAcc(double time)
         {
-            int n = GetPVNFromTime(time, out double Multiplier, out double T1);
+            int n = GetPVNFromTime(time, out double T1);
             if (n < MBG_PointList.Count - 1)
             {
                 double T2 = MBG_PointList[n + 1].Time;
@@ -320,7 +381,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static bool AlreadyHaveNodeInTime(SortedDictionary<double, MBGManeuverNode> Dic, double StartTime, double EndTime)
         {
             if (Dic.Count == 0) return false;
-            
+
             int i = 0;
             try
             {
@@ -396,14 +457,14 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public void ChangeTimeActivate(TimeMultiplierModeChangedEvent e)
         {
-            if ((this.CurrentCraft!=null)&&(!CraftDestroyed))
+            if ((this.CurrentCraft != null) && (!CraftDestroyed))
             {
                 Debug.Log($"TL0SR2 MBG Orbit -- Change Time Mode -- New Time Mode {e.CurrentMode.TimeMultiplier}");
                 double NewMultiplier = e.CurrentMode.TimeMultiplier;
                 _warpdelay = 0;//WarpDelayK * NewMultiplier;
                 if (NewMultiplier > 0)
                 {
-                    int n = GetPVNFromTime(CurrentTime + _warpdelay, out _, out _);
+                    int n = GetPVNFromTime(CurrentTime + _warpdelay, out _);
                     //Debug.Log($"TL0SR2 MBG Orbit -- ChangeTimeActivate -- Add New Node Time {CurrentTime} Multiplier {NewMultiplier} n {n}");
                     TLPList.Add(new MBGOrbit_Time_ListNPair(CurrentTime + _warpdelay, NewMultiplier, n));
                     if (e.EnteredWarpMode)
@@ -411,30 +472,50 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         P_V_Pair state = GetCraftStateAtCurrentTime();
                         Debug.Log($"TL0SR2 MBG Orbit -- Enter Time Warp Mode -- Add New Point   N {n}");
                         MBG_PointList[n] = new MBGOrbitPoint(state, CurrentTime);
+                        DeleteElementAfterN(ref MBG_PointList, n);
+                        //ForceReCalculation();
+                        CalculateAfterWarp = true;
+                        //InWarpMode = true;
+                        caculation.StartCaculation(MBG_PointList[n],n);
                     }
-                    CalculateAfterWarp = true;
-                    ForceReCalculation();
+                    if (e.ExitedWarpMode)
+                    {
+                        caculation.StopCaculation();
+                        //InWarpMode = false;
+                    }
                 }
             }
         }
 
-        public int GetPVNFromTime(double time, out double Multiplier, out double NTime)
+        public int GetPVNFromTime(double time, out double NTime)
         //这个方法输入时间，返回这个时刻【之前】的【最后】的PV列表对应序号n值,并输出这个n对应的时间加速倍率和n值对应的时间。
         {
-            
+
             if (time >= _startTime)
             {
+                MBGOrbitPoint point, tempPoint = MBG_PointList[0];
+                /*
                 //time -= _warpdelay;
                 int ChangeN = GetListTLPFromTime(time, out Multiplier, out double changeTime);
                 int AfterN = (int)Math.Floor((time - changeTime) / MBGMath.GetStepTime(Multiplier));//这个值表示自从时间变化之后到所给时间时经过了多少项
                 NTime = changeTime + AfterN * MBGMath.GetStepTime(Multiplier);
                 return ChangeN + AfterN;
+                */
+                for (int i = 0; i < MBG_PointList.Count - 1; i++)
+                {
+                    point = MBG_PointList[i];
+                    if (point.Time > time)
+                    {
+                        NTime = tempPoint.Time;
+                        return i - 1;
+                    }
+                    tempPoint = point;
+                }
             }
             Debug.LogError("TL0SR2 MBG Orbit Log Error -- MBGOrbit.GetPVNFromTime -- Time Out Of Range");
-            Multiplier = 1;
             NTime = _startTime;
             return 0;
-            
+
             /*
             if (time >= _startTime)
             {
@@ -576,6 +657,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         public MBGMapOrbitInfo orbitInfo;
 
+        public bool InWarpMode;
+
         private readonly double _startTime;
         //private MBGMath MathCalculator;
         public double EndTime { get; private set; }
@@ -614,7 +697,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             get => CurrentTime - _warpdelay;
         }
 
-        public int CaculationNum = 0;
+        //public int CaculationNum = 0;
         //指定当前轨道已经经过了多少次重新计算
 
         public SortedDictionary<double, MBGManeuverNode> Time_ThrustAcc_Dic { get; private set; } = new SortedDictionary<double, MBGManeuverNode>();
@@ -626,6 +709,10 @@ namespace Assets.Scripts.Flight.Sim.MBG
         private bool CalculateAfterWarp;
 
         private static double WarpDelayK = 0.01;
+
+        //private Task CaculationTask;
+
+        private MBGOrbitAsyncCaculation caculation;
     }
 
     public struct MBGOrbit_Time_ListNPair

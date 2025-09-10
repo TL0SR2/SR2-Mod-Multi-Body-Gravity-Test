@@ -77,16 +77,19 @@ namespace Assets.Scripts.Flight.Sim.MBG
                         //return true;
                     }
 
-                    if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Math.Max(Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier,1))
+                    /*
+                    if (mbgOrbit.EndTime - MBGOrbit.CurrentTime < MBGOrbit.ForceReCalculateBeforeEnd * Math.Max(Game.Instance.FlightScene.TimeManager.CurrentMode.TimeMultiplier, 1))
                     {
                         Debug.Log("TL0SR2 MBG -- ApplyTimeWarpForce -- Near End Time. Force ReCalculate.");
                         mbgOrbit.ForceReCalculation();
                     }
+                    */
+
                     //此处已经替换成自己计算得到的位置信息
                     Vector3d planetSolarPosition = SunNode.FindPlanet(CurrentPlanet.Name).GetSolarPositionAtTime(MBGOrbit.CurrentTime);
                     Vector3d planetSolarVelocity = SunNode.FindPlanet(CurrentPlanet.Name).GetSolarVelocityAtTime(MBGOrbit.CurrentTime);
                     P_V_Pair PlanetPVState = new P_V_Pair(planetSolarPosition, planetSolarVelocity);
-                    P_V_Pair State = mbgOrbit.GetPVPairFromTime(MBGOrbit.CurrentTime) - PlanetPVState;
+                    P_V_Pair State = mbgOrbit.TryGetStateFromTime(MBGOrbit.CurrentTime) - PlanetPVState;
                     //Debug.Log($"TL0SR2 MBG Patch Log -- ApplyTimeWarpForce -- Get Craft State Position {State.Position} Velocity {State.Velocity} Position Length {State.Position.magnitude} Velocity Length {State.Velocity.magnitude}");
                     Vector3d vector = timeWarpForceTotal / __instance.CraftScript.Mass * (float)deltaTime;
                     Vector3d velocity = State.Velocity + vector;

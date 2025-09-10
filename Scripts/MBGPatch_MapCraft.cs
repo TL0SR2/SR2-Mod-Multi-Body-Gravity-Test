@@ -80,7 +80,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 bool flag1 = _options.Craft.ContinuouslyUpdateChain;
                 //如果轨道满足重绘条件，flag1 = true
                 var IsApplyingThrustMethod = AccessTools.Method(typeof(MapCraft), "IsApplyingThrust", new Type[] { });
-                bool flag4 = MapCraft_PostScript_Dic[__instance].LastUpdateCalculateNum != MapCraft_PostScript_Dic[__instance].GetOrbit().CaculationNum || (bool)IsApplyingThrustMethod.Invoke(__instance, new object[] { });
+                bool flag4 = (bool)IsApplyingThrustMethod.Invoke(__instance, new object[] { });
                 //如果轨道改变了，flag4 = true
                 bool _nodeListChanged = (bool)AccessTools.Field(typeof(MapCraft), "_nodeListChanged").GetValue(__instance);
                 bool _chainSelectionChanged = (bool)AccessTools.Field(typeof(MapCraft), "_chainSelectionChanged").GetValue(__instance);

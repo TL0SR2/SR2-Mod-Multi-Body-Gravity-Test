@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using Unity.Mathematics;
 //using MathNet.Numerics.LinearAlgebra.Double;
 //using MathNet.Numerics.LinearAlgebra;
 namespace Assets.Scripts.Flight.Sim.MBG
@@ -47,7 +48,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(Position, Velocity);
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint,SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut,bool LongPrediction)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, double elapsedTime, double Multiplier, out List<MBGOrbitPoint> PVOut, bool LongPrediction)
         {
             P_V_Pair PVPair = startPoint.State;
             double time = startPoint.Time;
@@ -63,6 +64,35 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 time += Step;
             }
 
+        }
+
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, double elapsedTime, out List<MBGOrbitPoint> PVOut)
+        //变步长RK计算方法
+        {
+            P_V_Pair PVPair = startPoint.State;
+            double time = startPoint.Time;
+            double Step = _CalculationRealStep;
+            PVOut = new List<MBGOrbitPoint> { new MBGOrbitPoint(PVPair, time) };
+            Debug.Log($"TL0SR2 MBG Math -- Start RKF NumericalIntegration elapsedTime:{elapsedTime}");
+            while (time < startPoint.Time + elapsedTime)
+            {
+                PVPair = MBGMath_CaculationMethod.RKF45Method(PVPair,ref time, (time, State) => RKFFunc(time, State, MBGOrbit.GetThrustAcc(T_TAC_Dic, time)), ref Step);
+                PVOut.Add(new MBGOrbitPoint(PVPair, time));
+            }
+        }
+
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, Func<double,bool> continueCondition, Action<MBGOrbitPoint> OutputAction)
+        //变步长RK计算方法,持续计算代码，每次得到一个结果之后通过输入的委托向外输出（而非添加到列表）
+        {
+            P_V_Pair PVPair = startPoint.State;
+            double time = startPoint.Time;
+            double Step = _CalculationRealStep;
+            Debug.Log($"TL0SR2 MBG Math -- Start Continuous RKF NumericalIntegration.");
+            while (continueCondition(time))
+            {
+                PVPair = MBGMath_CaculationMethod.RKF45Method(PVPair,ref time, (time, State) => RKFFunc(time, State, MBGOrbit.GetThrustAcc(T_TAC_Dic, time)), ref Step);
+                OutputAction(new MBGOrbitPoint(PVPair, time));
+            }
         }
 
         public static void AddMBGCalculationStep()
@@ -116,6 +146,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
             return new P_V_Pair(input_P_V.Velocity, GravityAcc);
         };
 
+        public static Func<double, P_V_Pair, Vector3d, P_V_Pair> RKFFunc = (time, input_P_V, Acc) =>
+        //给出RKF总的数值模拟迭代函数
+        {
+            Vector3d GravityAcc = MBGOrbit.CalculateGravityAtTime(input_P_V.Position, time);
+            return new P_V_Pair(input_P_V.Velocity, GravityAcc + Acc);
+        };
+
         public static Func<double, Vector3d, Vector3d, Vector3d> GravityFunc = (time, inputPosition, Acc) =>
         //给出万有引力加速度函数
         {
@@ -141,6 +178,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
         //表示数值计算的时间步长
+
+        private static double max_h = 86400;
+        //RKF中使用的最大步长
+        private static double tolerance = 1E-4;
+        //RKF的最大容许误差
 
         //第一部分：显式RK方法
 
@@ -224,6 +266,39 @@ namespace Assets.Scripts.Flight.Sim.MBG
             var k6 = h * func(x_n + h / 2, y_n + (9 * k2 - 3 * k3 - 6 * k4 + 4 * k5) / 8);
             var k7 = h * func(x_n + h / 2, y_n + (9 * k1 - 36 * k2 + 63 * k3 + 72 * k4 - 64 * k6) / 44);
             return y_n + (11 * k1 + 81 * k3 + 81 * k4 - 32 * k5 - 32 * k6 + 11 * k7) / 120;
+        }
+
+
+        //变步长RK方法
+        public static P_V_Pair RKF45Method(P_V_Pair y_n,ref double x_0, Func<double, P_V_Pair, P_V_Pair> func, ref double _h)
+        {
+            double x_n = x_0;
+            while (true)
+            {
+                var k1 = func(x_n, y_n);
+                var k2 = func(x_n + 0.25 * _h, y_n + 0.25 * _h * k1);
+                var k3 = func(x_n + 0.375 * _h, y_n + 0.09375 * _h * k1 + 0.28125 * _h * k2);
+                var k4 = func(x_n + 12 / 13 * _h, y_n + 1932 / 2197 * _h * k1 - 7200 / 2197 * _h * k2 + 7296 / 2197 * _h * k3);
+                var k5 = func(x_n + _h, y_n + 439 / 216 * _h * k1 - 8 * _h * k2 + 3680 / 513 * _h * k3 - 845 / 4104 * _h * k4);
+                var k6 = func(x_n + 0.5 * _h, y_n - 8 / 27 * _h * k1 + 2 * _h * k2 - 3544 / 2565 * _h * k3 + 1859 / 4104 * _h * k4 - 0.275 * _h * k5);
+                var w = y_n + _h * (25 / 216 * k1 + 1408 / 2565 * k3 + 2197 / 4104 * k4 - 0.2 * k5);
+                var z = y_n + _h * (16 / 135 * k1 + 6656 / 12825 * k3 + 28561 / 56430 * k4 - 0.18 * k5 + 2 / 55 * k6);
+                x_0 = x_n + _h;
+                var delta = (w - z).Magnitude / w.Magnitude;
+                if (delta > tolerance)
+                {
+                    _h /= 2;
+                }
+                else
+                {
+                    if (delta < tolerance / 10)
+                    {
+                        _h *= 2;
+                        _h = math.min(_h, max_h);
+                    }
+                    return z;
+                }
+            }
         }
 
         //第二部分：隐式RK方法--GL方法
@@ -376,11 +451,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             Vector3d result = new Vector3d(0, 0, 0);
             result.x =
-                (
+                
                 x * F[0] +
                 a * F[1] +
                 b * F[2] +
-                F[3]) +
+                F[3] +
             t * (
                 (a * a + b * b + 2 * a * b * c * t - x * (y + z)) * F[0] +
                 (b * c - a * z) * F[1] +
@@ -395,11 +470,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 (a * c - b * y) * F[5]);//对称性检查可以得知交换性来源于矩阵的行列式计算
 
             result.y =
-                (
+                
                 y * F[1] +
                 c * F[2] +
                 a * F[0] +
-                F[4]) +
+                F[4] +
             t * (
                 (c * c + a * a + 2 * a * b * c * t - y * (z + x)) * F[1] +
                 (a * b - c * x) * F[2] +
@@ -414,11 +489,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 (c * b - a * z) * F[3]);
 
             result.z =
-                (
+                
                 z * F[2] +
                 b * F[0] +
                 c * F[1] +
-                F[5]) +
+                F[5] +
             t * (
                 (b * b + c * c + 2 * a * b * c * t - z * (x + y)) * F[2] +
                 (a * c - b * y) * F[0] +

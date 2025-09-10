@@ -235,7 +235,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 */
                 Debug.Log($"TL0SR2 -- MBG Node DeltaV Adjustor Script -- icon enable: {this.enabled}  ");
                 this._icon.transform.position = vector3;
-                this._icon.transform.rotation = Quaternion.LookRotation(this.ManeuverNodeScript.Camera.transform.position - this._icon.transform.position);
+                this._icon.transform.rotation = Quaternion.LookRotation(this._icon.transform.position - this.ManeuverNodeScript.Camera.transform.position);
                 float num6 = Mathf.Min(this.GetIconTransparency(vector3d), 0.8f);
                 this._iconColor.a = num6;
                 this._icon.color = this._iconColor;
