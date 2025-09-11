@@ -179,7 +179,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
         //表示数值计算的时间步长
 
-        private static double max_h = 86400;
+        private static double max_h = 1E+7;
         //RKF中使用的最大步长
         private static double tolerance = 1E-4;
         //RKF的最大容许误差
