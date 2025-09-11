@@ -60,7 +60,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
             for (int i = 0; i < CaculateStep; i++)//只适用于固定步长的数值计算方法的代码
             {
                 PVOut.Add(new MBGOrbitPoint(PVPair, time));
-                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, (time, Position) => GravityFunc(time, Position, MBGOrbit.GetThrustAcc(T_TAC_Dic, time)));
+                PVPair = MBGMath_CaculationMethod.YoshidaMethod(PVPair, time, Step, (time, Position) => GravityFunc(time, Position, MBGOrbit.GetThrustAcc(T_TAC_Dic, time)));
                 time += Step;
             }
 
@@ -278,12 +278,13 @@ namespace Assets.Scripts.Flight.Sim.MBG
                 var k1 = func(x_n, y_n);
                 var k2 = func(x_n + 0.25 * _h, y_n + 0.25 * _h * k1);
                 var k3 = func(x_n + 0.375 * _h, y_n + 0.09375 * _h * k1 + 0.28125 * _h * k2);
-                var k4 = func(x_n + 12 / 13 * _h, y_n + 1932 / 2197 * _h * k1 - 7200 / 2197 * _h * k2 + 7296 / 2197 * _h * k3);
-                var k5 = func(x_n + _h, y_n + 439 / 216 * _h * k1 - 8 * _h * k2 + 3680 / 513 * _h * k3 - 845 / 4104 * _h * k4);
-                var k6 = func(x_n + 0.5 * _h, y_n - 8 / 27 * _h * k1 + 2 * _h * k2 - 3544 / 2565 * _h * k3 + 1859 / 4104 * _h * k4 - 0.275 * _h * k5);
-                var w = y_n + _h * (25 / 216 * k1 + 1408 / 2565 * k3 + 2197 / 4104 * k4 - 0.2 * k5);
-                var z = y_n + _h * (16 / 135 * k1 + 6656 / 12825 * k3 + 28561 / 56430 * k4 - 0.18 * k5 + 2 / 55 * k6);
+                var k4 = func(x_n + 12.0 / 13.0 * _h, y_n + 1932.0 / 2197.0 * _h * k1 - 7200.0 / 2197.0 * _h * k2 + 7296.0 / 2197.0 * _h * k3);
+                var k5 = func(x_n + _h, y_n + 439.0 / 216.0 * _h * k1 - 8.0 * _h * k2 + 3680.0 / 513.0 * _h * k3 - 845.0 / 4104.0 * _h * k4);
+                var k6 = func(x_n + 0.5 * _h, y_n - 8.0 / 27.0 * _h * k1 + 2.0 * _h * k2 - 3544.0 / 2565.0 * _h * k3 + 1859.0 / 4104.0 * _h * k4 - 0.275 * _h * k5);
+                var w = y_n + _h * (25.0 / 216.0 * k1 + 1408.0 / 2565.0 * k3 + 2197.0 / 4104.0 * k4 - 0.2 * k5);
+                var z = y_n + _h * (16.0 / 135.0 * k1 + 6656.0 / 12825.0 * k3 + 28561.0 / 56430.0 * k4 - 0.18 * k5 + 2.0 / 55.0 * k6);
                 x_0 = x_n + _h;
+
                 var delta = (w - z).Magnitude / w.Magnitude;
                 if (delta > tolerance)
                 {
@@ -925,7 +926,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         //Yoshida方法：更高级别的显式保辛算法。基于可分离的哈密顿方程开发，具有计算速度快，精度高而且保辛的优点。没有缺点喵（叉腰
 
-        public static P_V_Pair YoshidaMethod(P_V_Pair y_n, double x_n, Func<double, Vector3d, Vector3d> F)
+        public static P_V_Pair YoshidaMethod(P_V_Pair y_n, double x_n, double h, Func<double, Vector3d, Vector3d> F)
         //Yoshida方法,四阶精度，保辛，单步计算，输入万有引力函数func.
         {
             //w0 = -Math.Pow(2, 1 / 3) / (2 - Math.Pow(2, 1 / 3));
