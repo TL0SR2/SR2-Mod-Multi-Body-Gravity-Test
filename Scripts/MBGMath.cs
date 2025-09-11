@@ -265,7 +265,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         }
 
 
-        private static double max_h = 86400;
+        private static double max_h = 1E+7;
         //RKF中使用的最大步长
         private static double tolerance = 1E-5;
         //RKF的最大容许误差
