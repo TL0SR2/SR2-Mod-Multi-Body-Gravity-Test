@@ -62,7 +62,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
             var gravityFrame = MBGOrbit.CalculateGravityAtTime(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition) + craftNode.Parent.GetSolarPositionAtTime(time), time);
 
-            Debug.Log($"gravityFrame: {{ {gravityFrame.x:E3}, {gravityFrame.y:E3}, {gravityFrame.z:E3} }}");
+            // Debug.Log($"gravityFrame: {{ {gravityFrame.x:E3}, {gravityFrame.y:E3}, {gravityFrame.z:E3} }}");
 
             _gravityFrameRef(__instance) = gravityFrame.ToVector3();
            
