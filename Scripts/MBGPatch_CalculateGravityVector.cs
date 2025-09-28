@@ -17,7 +17,6 @@ namespace Assets.Scripts.Flight.Sim.MBG
         public static readonly AccessTools.FieldRef<CraftFlightData, Vector3> GravityFrameNormalizedRef = AccessTools.FieldRefAccess<CraftFlightData, Vector3>("<GravityFrameNormalized>k__BackingField");
         public static readonly AccessTools.FieldRef<CraftFlightData, float> GravityMagnitudeRef = AccessTools.FieldRefAccess<CraftFlightData, float>("<GravityMagnitude>k__BackingField");
         public static readonly AccessTools.FieldRef<CraftFlightData, Vector3d> GravityRef = AccessTools.FieldRefAccess<CraftFlightData, Vector3d>("<Gravity>k__BackingField");
-
         private static Dictionary<CraftFlightData, (List<Vector3d>, int)> CraftFlightData2GravityFrameList = new Dictionary<CraftFlightData, (List<Vector3d>, int)>();
 
         private static bool FindFields = false;
@@ -69,6 +68,8 @@ namespace Assets.Scripts.Flight.Sim.MBG
             GravityMagnitudeRef(__instance) = (float)gravityFrame.magnitude;
 
             GravityFrameNormalizedRef(__instance) = (referenceFrame.PlanetToFrameVector(craftNode.Parent.CalculateGravityVector(referenceFrame.FrameToPlanetPosition(craftNode.CraftScript.FramePosition), 1.0))).normalized;
+
+            GravityRef(__instance) = _craftScriptRef(__instance).ReferenceFrame.FrameToPlanetVector(gravityFrame.ToVector3());
 
             return false;
 

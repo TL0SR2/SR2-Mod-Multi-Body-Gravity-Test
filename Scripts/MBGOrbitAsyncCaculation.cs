@@ -11,6 +11,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
     public class MBGOrbitAsyncCaculation
     {
         public static double MaxCaculateTime = 6E+8;
+        public double Rkf45CalculationStep = 1;
         //public static double elapsedTime = 60;
         public MBGOrbitAsyncCaculation(MBGOrbit orbit)
         {
@@ -36,7 +37,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             try
             {
-                MBGMath.NumericalIntegration(StartPoint, _orbit.Time_ThrustAcc_Dic,
+                MBGMath.NumericalIntegration(StartPoint, ref Rkf45CalculationStep, _orbit.Time_ThrustAcc_Dic,
                     time => CaculationEnable && time <= MBGOrbit.CurrentTime + MaxCaculateTime,
                     point =>
                     {

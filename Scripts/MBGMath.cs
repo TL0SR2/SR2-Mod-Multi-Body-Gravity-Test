@@ -81,12 +81,11 @@ namespace Assets.Scripts.Flight.Sim.MBG
             }
         }
 
-        public static void NumericalIntegration(MBGOrbitPoint startPoint, SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, Func<double, bool> continueCondition, Action<MBGOrbitPoint> OutputAction)
+        public static void NumericalIntegration(MBGOrbitPoint startPoint, ref double Step, SortedDictionary<double, MBGManeuverNode> T_TAC_Dic, Func<double, bool> continueCondition, Action<MBGOrbitPoint> OutputAction)
         //变步长RK计算方法,持续计算代码，每次得到一个结果之后通过输入的委托向外输出（而非添加到列表）
         {
             P_V_Pair PVPair = startPoint.State;
             double time = startPoint.Time;
-            double Step = _CalculationRealStep;
             Debug.Log($"TL0SR2 MBG Math -- Start Continuous RKF NumericalIntegration.");
             while (continueCondition(time))
             {
@@ -267,7 +266,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
         private static double max_h = 1E+7;
         //RKF中使用的最大步长
-        private static double tolerance = 1E-5;
+        private static double tolerance = 1E-1;
         //RKF的最大容许误差
 
         //变步长RK方法
@@ -275,7 +274,7 @@ namespace Assets.Scripts.Flight.Sim.MBG
         {
             double x_n = x_0;
 
-            // Debug.Log($"TL0SR2 MBG Math -- RKF45 step h:{_h}  time:{x_n}->{x_n + _h} ");
+            Debug.Log($"TL0SR2 MBG Math -- RKF45 step h:{_h}  time:{x_n}->{x_n + _h} ");
 
 
             while (true)
@@ -293,9 +292,9 @@ namespace Assets.Scripts.Flight.Sim.MBG
 
                 var delta = math.max((w - z).Magnitude, 0.01 * tolerance);
 
-                // Debug.Log($"TL0SR2 MBG Math -- RKF45 step h:{_h} delta:{delta} w.Magnitude:{w.Magnitude} z.Magnitude:{z.Magnitude}");
+                Debug.Log($"TL0SR2 MBG Math -- RKF45 step h:{_h} delta:{delta} w.Magnitude:{w.Magnitude} z.Magnitude:{z.Magnitude}");
 
-                _h = math.min(_h * math.log(0.5 * tolerance / delta+1), max_h);
+                _h = math.min(_h * math.log(0.5 * tolerance / delta + 1), max_h);
 
                 if (delta < tolerance)
                 {
